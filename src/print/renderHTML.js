@@ -9,7 +9,7 @@ export function renderHTML(receiptDoc, width = '58') {
 
   receiptDoc.forEach(line => {
     if (line.type === 'separator') {
-      html += '<div class="separator">'.padEnd(charWidth, '-') + '</div>';
+      html += '<div class="separator"></div>';
     } else if (line.type === 'text') {
       const cls = [
         line.align || 'left',
