@@ -42,3 +42,20 @@ export function labaBersih(sales, cashflow) {
 export function stokMenipis(products) {
   return products.filter(p => p.aktif !== false && p.stok <= p.stokMin);
 }
+
+/** Produk terlaris (qty terjual tertinggi). */
+export function produkTerlaris(sales, limit = 10) {
+  const terjual = {};
+  for (const s of sales) {
+    if (s.void) continue;
+    for (const it of s.items || []) {
+      if (!terjual[it.produkId]) {
+        terjual[it.produkId] = { produkId: it.produkId, nama: it.nama, terjual: 0 };
+      }
+      terjual[it.produkId].terjual += it.qty;
+    }
+  }
+  return Object.values(terjual)
+    .sort((a, b) => b.terjual - a.terjual)
+    .slice(0, limit);
+}

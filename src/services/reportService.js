@@ -1,6 +1,6 @@
 // reportService — orkestrasi laporan (ambil data, panggil core)
 import { openDB } from '../data/db.js';
-import { hitungLabaKotor, hitungLabaBersih, produkTerlaris } from '../core/reports.js';
+import { labaKotor, labaBersih, produkTerlaris } from '../core/reports.js';
 
 // Laporan omzet & profit (rentang tanggal)
 export async function laporanOmzetProfit(dariTanggal, sampaiTanggal) {
@@ -11,8 +11,8 @@ export async function laporanOmzetProfit(dariTanggal, sampaiTanggal) {
   const cashflows = await queryCashflow(db, dariTanggal, sampaiTanggal);
 
   // Hitung
-  const labaKotor = hitungLabaKotor(sales);
-  const labaBersih = hitungLabaBersih(sales, cashflows);
+  const labaKotorValue = labaKotor(sales);
+  const labaBersihValue = labaBersih(sales, cashflows);
 
   // Omzet per metode
   const perMetode = {};
@@ -30,8 +30,8 @@ export async function laporanOmzetProfit(dariTanggal, sampaiTanggal) {
     totalTransaksi: sales.length,
     totalOmzet,
     perMetode,
-    labaKotor,
-    labaBersih
+    labaKotor: labaKotorValue,
+    labaBersih: labaBersihValue
   };
 }
 
