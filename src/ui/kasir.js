@@ -139,13 +139,13 @@ async function renderKasir() {
         <h3 style="margin:0 0 1rem 0; color:#0f172a;">PEMBAYARAN</h3>
 
         <!-- Input Tunai -->
-        <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <span style="font-size:18px;">💵</span>
-            <strong style="flex:1; color:#047857;">TUNAI</strong>
+            <strong style="flex:1;">TUNAI</strong>
           </div>
           <div style="display:flex; gap:8px;">
-            <input type="number" id="input-tunai" placeholder="0" min="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;">
+            <input type="number" id="input-tunai" placeholder="0" min="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
             <button onclick="window.bayarTunai()" style="padding:12px 20px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">+</button>
           </div>
         </div>
