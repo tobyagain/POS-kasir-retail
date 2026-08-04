@@ -1,9 +1,23 @@
 // UI Pengaturan — identitas toko, printer, laci, backup
 import { getByKey, put } from '../data/db.js';
+import { pairBluetoothPrinter } from '../services/printService.js';
 
 export async function initPengaturanUI() {
   await renderPengaturan();
 }
+
+window.pairPrinterBluetooth = async () => {
+  try {
+    const result = await pairBluetoothPrinter();
+    if (result.success) {
+      alert(`Printer terpair: ${result.name}`);
+    } else {
+      alert(`Gagal pair: ${result.error}`);
+    }
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+};
 
 async function renderPengaturan() {
   const toko = await getByKey('meta', 'toko');
@@ -59,14 +73,15 @@ async function renderPengaturan() {
         <label>Metode Cetak</label>
         <select name="printMethod">
           <option value="browser" ${printMethod.value === 'browser' ? 'selected' : ''}>Browser (Windows)</option>
-          <option value="escpos" ${printMethod.value === 'escpos' ? 'selected' : ''} disabled>ESC/POS (Android, Tahap 6)</option>
+          <option value="escpos" ${printMethod.value === 'escpos' ? 'selected' : ''}>ESC/POS (Android Bluetooth)</option>
         </select>
       </div>
       <p class="text-gray" style="font-size:12px;">
         Mode browser: cetak via window.print(). Laci diatur di driver printer.<br>
-        Mode ESC/POS: Bluetooth printer (tahap lanjut).
+        Mode ESC/POS: Bluetooth printer (Android/Chrome). Pair printer dulu di bawah.
       </p>
       <button type="submit" class="primary mt-1">Simpan</button>
+      <button type="button" class="secondary mt-1" onclick="window.pairPrinterBluetooth()">Pair Bluetooth Printer</button>
     </form>
 
     <hr style="margin: 2rem 0; border:none; border-top:1px solid #e5e7eb;">

@@ -2,12 +2,16 @@
 import { getByKey } from '../data/db.js';
 import { buildReceipt } from '../core/receipt.js';
 import { renderHTML } from '../print/renderHTML.js';
+import { renderESCPOS } from '../print/renderESCPOS.js';
+import { openDrawer } from '../print/drawer.js';
+import { printBytes, isBluetoothSupported } from '../print/bluetooth.js';
 
 export async function cetakStruk(sale) {
   const toko = await getByKey('meta', 'toko');
   const printerEnabled = await getByKey('meta', 'printerEnabled');
   const printerWidth = await getByKey('meta', 'printerWidth');
   const printMethod = await getByKey('meta', 'printMethod');
+  const drawerEnabled = await getByKey('meta', 'drawerEnabled');
 
   // Build dokumen netral
   const doc = buildReceipt(sale, toko.value);
@@ -21,9 +25,11 @@ export async function cetakStruk(sale) {
   if (printMethod.value === 'browser') {
     // Mode browser: window.print()
     cetakViaBrowser(doc, printerWidth.value);
+  } else if (printMethod.value === 'escpos') {
+    // Mode ESC/POS: Bluetooth
+    await cetakViaESCPOS(doc, printerWidth.value, drawerEnabled.value);
   } else {
-    // Mode ESC/POS: Tahap 6
-    throw new Error('ESC/POS belum diimplementasi (Tahap 6)');
+    throw new Error('printMethod tidak valid');
   }
 }
 
@@ -41,6 +47,28 @@ function cetakViaBrowser(doc, width) {
   };
 }
 
+async function cetakViaESCPOS(doc, width, drawerEnabled) {
+  if (!isBluetoothSupported()) {
+    throw new Error('Browser tidak support Web Bluetooth. Gunakan Chrome/Edge Android.');
+  }
+
+  try {
+    // Render ESC/POS
+    const bytes = renderESCPOS(doc, width);
+
+    // Kirim ke printer
+    await printBytes(bytes);
+
+    // Buka laci (opsional)
+    if (drawerEnabled) {
+      const drawerCmd = openDrawer();
+      await printBytes(drawerCmd);
+    }
+  } catch (err) {
+    throw new Error(`Gagal cetak ESC/POS: ${err.message}`);
+  }
+}
+
 function previewStruk(doc, width) {
   const html = renderHTML(doc, width);
   const win = window.open('', '_blank');
@@ -55,4 +83,10 @@ function previewStruk(doc, width) {
     notice.textContent = 'Preview (printer tidak aktif)';
     body.insertBefore(notice, body.firstChild);
   };
+}
+
+// Helper: pair printer (dipanggil dari UI Pengaturan)
+export async function pairBluetoothPrinter() {
+  const { pairPrinter } = await import('./bluetooth.js');
+  return pairPrinter();
 }
