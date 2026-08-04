@@ -51,6 +51,10 @@ async function renderKasir() {
         font-weight: 600; 
         margin-left: 6px;
       }
+      /* Hide shortcuts hints on mobile/tablet (touch devices) */
+      @media (hover: none) {
+        .shortcut-hint { display: none; }
+      }
       .tab-btn-mode { 
         padding: 10px 20px; 
         border: none; 
@@ -89,7 +93,7 @@ async function renderKasir() {
 
             <!-- Mode Produk -->
             <div id="mode-produk" style="display:${inputMode === 'produk' ? 'block' : 'none'};">
-              <label style="font-size:12px; font-weight:600; color:#64748b;">Cari Produk <span class="shortcut-hint">F4</span></label>
+              <label style="font-size:12px; font-weight:600; color:#64748b;">Cari Produk <span class="shortcut-hint">F4 / Ctrl+F</span></label>
               <input type="text" id="input-search" placeholder="Cari nama produk..." style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px; margin-top:4px;">
             </div>
           </div>
@@ -97,7 +101,7 @@ async function renderKasir() {
 
         <!-- Grid Produk (hanya tampil di mode produk) -->
         <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:${inputMode === 'produk' ? 'block' : 'none'};">
-          <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK <span class="shortcut-hint">F2</span></div>
+          <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
           <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
         </div>
 
@@ -110,8 +114,10 @@ async function renderKasir() {
       <!-- TENGAH: Keranjang (Fokus Utama) -->
       <div style="background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
-          <h2 style="margin:0; color:#0f172a;">DAFTAR ITEM <span class="shortcut-hint">F1</span></h2>
-          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:8px 16px;">Riwayat</button>
+          <h2 style="margin:0; color:#0f172a;">DAFTAR ITEM</h2>
+          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:8px 16px;">
+            Riwayat <span class="shortcut-hint">Ctrl+P</span>
+          </button>
         </div>
 
         <div id="keranjang-content" style="flex:1; overflow-y:auto;"></div>
@@ -481,26 +487,6 @@ window.resetKeranjang = () => {
 // Keyboard Shortcuts
 function initShortcuts() {
   document.addEventListener('keydown', (e) => {
-    // F1 - Fokus keranjang (scroll to top)
-    if (e.key === 'F1') {
-      e.preventDefault();
-      document.getElementById('keranjang-content')?.scrollTo(0, 0);
-    }
-    
-    // F2 - Fokus grid produk (scroll to top)
-    if (e.key === 'F2') {
-      e.preventDefault();
-      if (inputMode === 'produk') {
-        document.getElementById('produk-grid')?.scrollTo(0, 0);
-      }
-    }
-    
-    // F3 - Pelanggan (placeholder)
-    if (e.key === 'F3') {
-      e.preventDefault();
-      alert('Fitur pelanggan (belum diimplementasi)');
-    }
-    
     // F4 - Fokus search produk
     if (e.key === 'F4') {
       e.preventDefault();
@@ -537,7 +523,7 @@ function initShortcuts() {
       }
     }
     
-    // Ctrl+P - Cetak resi (placeholder - perlu last sale)
+    // Ctrl+P - Riwayat (reprint)
     if (e.ctrlKey && e.key === 'p') {
       e.preventDefault();
       window.showRiwayatPenjualan();
