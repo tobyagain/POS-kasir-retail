@@ -20,6 +20,14 @@ window.pairPrinterBluetooth = async () => {
   }
 };
 
+window.toggleAccordion = (id) => {
+  const content = document.getElementById(`content-${id}`);
+  const arrow = document.getElementById(`arrow-${id}`);
+  
+  content.classList.toggle('open');
+  arrow.classList.toggle('open');
+};
+
 window.exportBackup = async () => {
   try {
     const backup = await exportDatabase();
@@ -71,14 +79,53 @@ async function renderPengaturan() {
 
   const container = document.querySelector('[data-panel="pengaturan"]');
   container.innerHTML = `
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
-      <!-- Kiri: Identitas Toko + Printer -->
-      <div>
-        <!-- Identitas Toko -->
-        <div class="card" style="margin-bottom:1.5rem;">
-          <div class="card-header">
-            <h2 style="color:#0284c7; font-size:18px;">🏪 Identitas Toko</h2>
-          </div>
+    <style>
+      .accordion-section { margin-bottom: 1rem; }
+      .accordion-header {
+        background: #fff;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+      }
+      .accordion-header:hover { background: #f8fafc; }
+      .accordion-header h2 { margin: 0; font-size: 18px; color: #0284c7; }
+      .accordion-arrow { 
+        font-size: 20px; 
+        transition: transform 0.2s;
+        color: #64748b;
+      }
+      .accordion-arrow.open { transform: rotate(180deg); }
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .accordion-content.open { 
+        max-height: 1000px;
+        transition: max-height 0.5s ease-in;
+      }
+      .accordion-body {
+        background: #fff;
+        padding: 1.5rem;
+        margin-top: 4px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      }
+    </style>
+
+    <!-- Identitas Toko -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="window.toggleAccordion('toko')">
+        <h2>🏪 Identitas Toko</h2>
+        <span class="accordion-arrow" id="arrow-toko">▼</span>
+      </div>
+      <div class="accordion-content" id="content-toko">
+        <div class="accordion-body">
           <form id="form-toko">
             <div class="mb-1">
               <label>Nama Toko <span class="text-red">*</span></label>
@@ -95,12 +142,17 @@ async function renderPengaturan() {
             <button type="submit" class="primary" style="width:100%;">Simpan</button>
           </form>
         </div>
+      </div>
+    </div>
 
-        <!-- Printer & Laci -->
-        <div class="card">
-          <div class="card-header">
-            <h2 style="color:#0284c7; font-size:18px;">🖨️ Printer & Laci Kas</h2>
-          </div>
+    <!-- Printer & Laci -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="window.toggleAccordion('printer')">
+        <h2>🖨️ Printer & Laci Kas</h2>
+        <span class="accordion-arrow" id="arrow-printer">▼</span>
+      </div>
+      <div class="accordion-content" id="content-printer">
+        <div class="accordion-body">
           <form id="form-printer">
             <div class="mb-1">
               <label>
@@ -139,14 +191,16 @@ async function renderPengaturan() {
           </form>
         </div>
       </div>
+    </div>
 
-      <!-- Kanan: Backup & Pengaturan Umum -->
-      <div>
-        <!-- Backup & Restore -->
-        <div class="card" style="margin-bottom:1.5rem; background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border:2px solid #f59e0b;">
-          <div style="border-bottom:2px solid #f59e0b; padding-bottom:1rem; margin-bottom:1rem;">
-            <h2 style="color:#92400e; font-size:18px;">💾 Backup & Restore</h2>
-          </div>
+    <!-- Backup & Restore -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="window.toggleAccordion('backup')">
+        <h2>💾 Backup & Restore</h2>
+        <span class="accordion-arrow" id="arrow-backup">▼</span>
+      </div>
+      <div class="accordion-content" id="content-backup">
+        <div class="accordion-body" style="background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border:2px solid #f59e0b;">
           <p style="color:#92400e; font-size:13px; margin-bottom:1rem; line-height:1.5;">
             <strong>Export:</strong> Download semua data (produk, penjualan, shift, kas) sebagai file JSON.<br>
             <strong>Import:</strong> Restore dari file JSON backup. ⚠️ Data lama akan tertimpa!
@@ -163,12 +217,17 @@ async function renderPengaturan() {
             💡 <strong>Tips:</strong> Export backup secara berkala (misal: setiap akhir bulan) untuk keamanan data.
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Pengaturan Umum -->
-        <div class="card">
-          <div class="card-header">
-            <h2 style="color:#0284c7; font-size:18px;">⚙️ Pengaturan Umum</h2>
-          </div>
+    <!-- Pengaturan Umum -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="window.toggleAccordion('umum')">
+        <h2>⚙️ Pengaturan Umum</h2>
+        <span class="accordion-arrow" id="arrow-umum">▼</span>
+      </div>
+      <div class="accordion-content" id="content-umum">
+        <div class="accordion-body">
           <form id="form-umum">
             <div class="mb-1">
               <label>
