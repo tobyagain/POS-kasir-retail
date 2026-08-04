@@ -1,5 +1,5 @@
-// UI Laporan
-import { laporanOmzetProfit, laporanProdukTerlaris, laporanStokMenurun, laporanShift, exportDatabase, importDatabase } from '../services/reportService.js';
+// UI Laporan — Blue theme redesign (final tab!)
+import { laporanOmzetProfit, laporanProdukTerlaris, laporanStokMenurun, laporanShift } from '../services/reportService.js';
 
 export async function initLaporanUI() {
   await renderLaporan();
@@ -8,16 +8,17 @@ export async function initLaporanUI() {
 async function renderLaporan() {
   const container = document.querySelector('[data-panel="laporan"]');
   container.innerHTML = `
-    <h2>Laporan</h2>
+    <h2 style="color:#0284c7; margin-bottom:1.5rem;">📊 Laporan & Analisis</h2>
 
-    <div style="background:#fff; padding:1.5rem; border-radius:4px; margin-bottom:1rem;">
-      <h3>Laporan Omzet & Profit</h3>
-      <form id="form-rentang" class="mt-2 flex gap-1" style="align-items:flex-end;">
-        <div>
+    <!-- Laporan Omzet & Profit -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit</h3>
+      <form id="form-rentang" style="display:flex; gap:8px; align-items:flex-end;">
+        <div style="flex:1;">
           <label>Dari Tanggal</label>
           <input type="date" name="dari" required>
         </div>
-        <div>
+        <div style="flex:1;">
           <label>Sampai Tanggal</label>
           <input type="date" name="sampai" required>
         </div>
@@ -27,212 +28,225 @@ async function renderLaporan() {
       <div id="hasil-laporan" class="mt-2"></div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
-      <div style="background:#fff; padding:1.5rem; border-radius:4px;">
-        <h3>Stok Menipis</h3>
-        <div id="stok-menipis-content" class="mt-1"></div>
+    <!-- 2 Kolom: Stok Menipis + Produk Terlaris -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+      <div class="card">
+        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">⚠️ Stok Menipis</h3>
+        <div id="stok-menipis-content"></div>
       </div>
 
-      <div style="background:#fff; padding:1.5rem; border-radius:4px;">
-        <h3>Produk Terlaris</h3>
-        <div id="produk-terlaris-content" class="mt-1"></div>
+      <div class="card">
+        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">🏆 Produk Terlaris</h3>
+        <div id="produk-terlaris-content"></div>
       </div>
     </div>
 
-    <div style="background:#fff; padding:1.5rem; border-radius:4px; margin-bottom:1rem;">
-      <h3>Riwayat Shift</h3>
-      <div id="riwayat-shift-content" class="mt-1"></div>
-    </div>
-
-    <div style="background:#fff; padding:1.5rem; border-radius:4px;">
-      <h3>Backup & Restore</h3>
-      <div class="flex gap-1 mt-2">
-        <button class="primary" onclick="window.exportBackup()">Export Backup (JSON)</button>
-        <button class="secondary" onclick="window.importBackup()">Import Backup</button>
-      </div>
-      <p class="text-gray mt-1" style="font-size:12px;">Export: download semua data sebagai JSON. Import: restore dari file JSON (overwrite semua data).</p>
+    <!-- Riwayat Shift -->
+    <div class="card">
+      <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📅 Riwayat Shift</h3>
+      <div id="riwayat-shift-content"></div>
     </div>
   `;
 
-  // Load stok menipis & shift
+  // Load data awal
   await loadStokMenurun();
   await loadRiwayatShift();
 
-  // Handler form rentang
+  // Form submit
   document.getElementById('form-rentang').onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
-    const dari = new Date(form.dari.value).getTime();
+    const dari = new Date(form.dari.value).setHours(0, 0, 0, 0);
     const sampai = new Date(form.sampai.value).setHours(23, 59, 59, 999);
-    await loadLaporan(dari, sampai);
+
+    await loadLaporanOmzet(dari, sampai);
+    await loadProdukTerlaris(dari, sampai);
   };
 }
 
-window.laporanHariIni = async () => {
-  const today = new Date();
-  const dari = today.setHours(0, 0, 0, 0);
-  const sampai = today.setHours(23, 59, 59, 999);
-  
+window.laporanHariIni = () => {
   const form = document.getElementById('form-rentang');
-  form.dari.valueAsDate = new Date(dari);
-  form.sampai.valueAsDate = new Date(sampai);
-
-  await loadLaporan(dari, sampai);
+  const today = new Date().toISOString().slice(0, 10);
+  form.dari.value = today;
+  form.sampai.value = today;
+  form.requestSubmit();
 };
 
-async function loadLaporan(dari, sampai) {
+async function loadLaporanOmzet(dari, sampai) {
   const hasil = document.getElementById('hasil-laporan');
-  hasil.innerHTML = '<p class="text-gray">Loading...</p>';
+  hasil.innerHTML = '<div style="text-align:center; padding:1rem; color:#64748b;">Loading...</div>';
 
   try {
     const laporan = await laporanOmzetProfit(dari, sampai);
-    const terlaris = await laporanProdukTerlaris(dari, sampai, 5);
 
     hasil.innerHTML = `
-      <div style="border:1px solid #e5e7eb; padding:1rem; border-radius:4px; margin-top:1rem;">
-        <div class="flex" style="justify-content:space-between; margin-bottom:1rem;">
-          <div>
-            <div class="text-gray" style="font-size:12px;">Total Transaksi</div>
-            <div style="font-size:20px; font-weight:600;">${laporan.totalTransaksi}</div>
-          </div>
-          <div>
-            <div class="text-gray" style="font-size:12px;">Total Omzet</div>
-            <div style="font-size:20px; font-weight:600;">${formatRupiah(laporan.totalOmzet)}</div>
-          </div>
-          <div>
-            <div class="text-gray" style="font-size:12px;">Laba Kotor</div>
-            <div style="font-size:20px; font-weight:600;" class="text-green">${formatRupiah(laporan.labaKotor)}</div>
-          </div>
-          <div>
-            <div class="text-gray" style="font-size:12px;">Laba Bersih</div>
-            <div style="font-size:20px; font-weight:600;" class="${laporan.labaBersih >= 0 ? 'text-green' : 'text-red'}">${formatRupiah(laporan.labaBersih)}</div>
-          </div>
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-top:1rem;">
+        <div style="background:#dbeafe; border:2px solid #3b82f6; border-radius:8px; padding:1rem;">
+          <div style="font-size:12px; color:#1e40af; margin-bottom:4px;">OMZET</div>
+          <div style="font-size:24px; font-weight:700; color:#1e3a8a;">${formatRupiah(laporan.omzet)}</div>
+          <div style="font-size:11px; color:#3b82f6; margin-top:4px;">${laporan.totalTransaksi} transaksi</div>
         </div>
 
-        <div style="border-top:1px solid #e5e7eb; padding-top:1rem;">
-          <strong>Per Metode Pembayaran:</strong>
-          ${Object.entries(laporan.perMetode).map(([metode, jumlah]) => `
-            <div class="flex" style="justify-content:space-between; margin-top:0.5rem;">
-              <span>${capitalize(metode)}</span>
-              <span>${formatRupiah(jumlah)}</span>
-            </div>
-          `).join('')}
+        <div style="background:#d1fae5; border:2px solid #10b981; border-radius:8px; padding:1rem;">
+          <div style="font-size:12px; color:#047857; margin-bottom:4px;">LABA KOTOR</div>
+          <div style="font-size:24px; font-weight:700; color:#047857;">${formatRupiah(laporan.labaKotor)}</div>
+          <div style="font-size:11px; color:#059669; margin-top:4px;">Omzet - HPP</div>
+        </div>
+
+        <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:8px; padding:1rem;">
+          <div style="font-size:12px; color:#92400e; margin-bottom:4px;">BIAYA OPERASIONAL</div>
+          <div style="font-size:24px; font-weight:700; color:#92400e;">${formatRupiah(laporan.biayaOperasional)}</div>
+        </div>
+
+        <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:8px; padding:1rem;">
+          <div style="font-size:12px; color:#065f46; margin-bottom:4px;">LABA BERSIH</div>
+          <div style="font-size:28px; font-weight:700; color:#065f46;">${formatRupiah(laporan.labaBersih)}</div>
+          <div style="font-size:11px; color:#059669; margin-top:4px;">Kotor - Operasional</div>
         </div>
       </div>
-    `;
 
-    // Update produk terlaris
-    const terlarisContent = document.getElementById('produk-terlaris-content');
-    if (terlaris.length === 0) {
-      terlarisContent.innerHTML = '<p class="text-gray">Tidak ada data</p>';
+      ${laporan.totalTransaksi === 0 ? `
+        <div style="text-align:center; padding:2rem; color:#94a3b8; margin-top:1rem;">
+          <div style="font-size:32px; margin-bottom:0.5rem;">📭</div>
+          <p>Tidak ada transaksi di periode ini</p>
+        </div>
+      ` : ''}
+    `;
+  } catch (err) {
+    hasil.innerHTML = `<div style="color:#dc2626; padding:1rem;">❌ Error: ${err.message}</div>`;
+  }
+}
+
+async function loadProdukTerlaris(dari, sampai) {
+  const container = document.getElementById('produk-terlaris-content');
+  container.innerHTML = '<div style="text-align:center; padding:1rem; color:#64748b;">Loading...</div>';
+
+  try {
+    const produk = await laporanProdukTerlaris(dari, sampai);
+
+    if (produk.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Tidak ada data</div>';
     } else {
-      terlarisContent.innerHTML = `
-        <ol style="padding-left:1.5rem;">
-          ${terlaris.map(p => `<li>${p.nama}: <strong>${p.terjual}</strong> ${p.satuan}</li>`).join('')}
-        </ol>
+      container.innerHTML = `
+        <table style="font-size:13px;">
+          <thead>
+            <tr>
+              <th>Produk</th>
+              <th>Qty Terjual</th>
+              <th>Omzet</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${produk.slice(0, 10).map(p => `
+              <tr>
+                <td style="font-weight:600; color:#0f172a;">${p.nama}</td>
+                <td class="text-right"><span class="badge badge-success">${p.totalQty}</span></td>
+                <td class="text-right font-bold" style="color:#10b981;">${formatRupiah(p.totalOmzet)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
       `;
     }
   } catch (err) {
-    hasil.innerHTML = `<p class="text-red">Gagal: ${err.message}</p>`;
+    container.innerHTML = `<div style="color:#dc2626;">❌ Error: ${err.message}</div>`;
   }
 }
 
 async function loadStokMenurun() {
-  const content = document.getElementById('stok-menipis-content');
-  const produk = await laporanStokMenurun();
+  const container = document.getElementById('stok-menipis-content');
 
-  if (produk.length === 0) {
-    content.innerHTML = '<p class="text-gray">Semua stok aman</p>';
-  } else {
-    content.innerHTML = `
-      <ul style="padding-left:1.5rem;">
-        ${produk.map(p => `<li class="text-red">${p.nama}: <strong>${p.stok}</strong> ${p.satuan} (min: ${p.stokMin})</li>`).join('')}
-      </ul>
-    `;
+  try {
+    const stok = await laporanStokMenurun();
+
+    if (stok.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:2rem; color:#10b981;">✅ Semua stok aman</div>';
+    } else {
+      container.innerHTML = `
+        <table style="font-size:13px;">
+          <thead>
+            <tr>
+              <th>Produk</th>
+              <th>Stok</th>
+              <th>Min</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${stok.slice(0, 10).map(p => `
+              <tr>
+                <td style="font-weight:600; color:#0f172a;">${p.nama}</td>
+                <td class="text-right"><span class="badge badge-danger">${p.stok} ${p.satuan}</span></td>
+                <td class="text-right" style="color:#64748b;">${p.stokMin}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:#dc2626;">❌ Error: ${err.message}</div>`;
   }
 }
 
 async function loadRiwayatShift() {
-  const content = document.getElementById('riwayat-shift-content');
-  const shifts = await laporanShift(10);
+  const container = document.getElementById('riwayat-shift-content');
 
-  content.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Kasir</th>
-          <th>Buka</th>
-          <th>Tutup</th>
-          <th>Omzet</th>
-          <th>Selisih</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${shifts.map(s => `
-          <tr>
-            <td>${s.kasir}</td>
-            <td>${formatWaktu(s.buka)}</td>
-            <td>${s.tutup ? formatWaktu(s.tutup) : '-'}</td>
-            <td class="text-right">${s.ringkasan ? formatRupiah(s.ringkasan.omzet) : '-'}</td>
-            <td class="text-right ${s.selisih && s.selisih !== 0 ? (s.selisih > 0 ? 'text-green' : 'text-red') : ''}">${s.selisih !== null ? formatRupiah(s.selisih) : '-'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-window.exportBackup = async () => {
   try {
-    const backup = await exportDatabase();
-    const json = JSON.stringify(backup, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pos-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    alert('Backup berhasil diexport');
-  } catch (err) {
-    alert('Gagal export: ' + err.message);
-  }
-};
+    const shifts = await laporanShift({ limit: 10 });
 
-window.importBackup = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'application/json';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const konfirm = confirm('Import backup akan MENIMPA semua data saat ini. Yakin?');
-    if (!konfirm) return;
-
-    try {
-      const text = await file.text();
-      const backup = JSON.parse(text);
-      await importDatabase(backup);
-      alert('Backup berhasil diimport. Refresh halaman.');
-      location.reload();
-    } catch (err) {
-      alert('Gagal import: ' + err.message);
+    if (shifts.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Belum ada shift</div>';
+    } else {
+      container.innerHTML = `
+        <table style="font-size:13px;">
+          <thead>
+            <tr>
+              <th>Kasir</th>
+              <th>Buka</th>
+              <th>Tutup</th>
+              <th>Omzet</th>
+              <th>Transaksi</th>
+              <th>Selisih</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${shifts.map(s => `
+              <tr>
+                <td style="font-weight:600; color:#0f172a;">${s.kasir}</td>
+                <td style="color:#64748b;">${formatWaktu(s.buka)}</td>
+                <td style="color:#64748b;">${s.tutup ? formatWaktu(s.tutup) : '-'}</td>
+                <td class="text-right font-bold" style="color:#10b981;">${s.ringkasan ? formatRupiah(s.ringkasan.omzet) : '-'}</td>
+                <td class="text-right" style="color:#64748b;">${s.ringkasan ? s.ringkasan.totalTransaksi : '-'}</td>
+                <td class="text-right">
+                  ${s.selisih !== null ? `
+                    <span class="badge ${s.selisih > 0 ? 'badge-success' : s.selisih < 0 ? 'badge-danger' : 'badge-info'}">
+                      ${s.selisih >= 0 ? '+' : ''}${formatRupiah(s.selisih)}
+                    </span>
+                  ` : '-'}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     }
-  };
-  input.click();
-};
+  } catch (err) {
+    container.innerHTML = `<div style="color:#dc2626;">❌ Error: ${err.message}</div>`;
+  }
+}
 
 function formatRupiah(n) {
   return 'Rp ' + n.toLocaleString('id-ID');
 }
 
 function formatWaktu(ts) {
-  return new Date(ts).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return new Date(ts).toLocaleDateString('id-ID', { 
+    day: '2-digit', 
+    month: 'short', 
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 window.initLaporanUI = initLaporanUI;
+window.laporanHariIni = laporanHariIni;
