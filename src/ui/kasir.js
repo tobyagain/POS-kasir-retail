@@ -43,6 +43,7 @@ async function renderKasir() {
           <div class="flex gap-1">
             <input type="text" id="input-barcode" placeholder="Scan/ketik barcode atau nama produk" style="flex:1;" autofocus>
             <button class="primary" onclick="window.cariProdukKasir()">Cari</button>
+            <button class="secondary" onclick="window.showRiwayatPenjualan()">Riwayat</button>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 // Bootstrap — init DB, routing, load UI modules
 import { openDB } from './data/db.js';
 import { initKasirUI } from './ui/kasir.js';
+import './ui/riwayat-penjualan.js'; // expose window.showRiwayatPenjualan
 import { initProdukUI } from './ui/produk.js';
 import { initBarangMasukUI } from './ui/barang-masuk.js';
 import { initStokUI } from './ui/stok.js';
