@@ -42,39 +42,52 @@ export function renderHTML(receiptDoc, width = '58') {
   <style>
     @page {
       size: ${paperWidth} auto;
+      margin: 5mm 2mm;
+    }
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
     body {
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      line-height: 1.4;
-      margin: 0;
-      padding: 8px;
+      font-family: 'Courier New', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.3;
+      color: #000;
       width: ${paperWidth};
+      padding: 0;
     }
     .receipt {
       width: 100%;
     }
     .receipt > div {
-      margin: 2px 0;
+      margin: 1px 0;
     }
     .left { text-align: left; }
     .center { text-align: center; }
     .right { text-align: right; }
-    .large { font-size: 16px; font-weight: bold; }
+    .large { 
+      font-size: 14px; 
+      font-weight: bold;
+      margin: 3px 0;
+    }
     .bold { font-weight: bold; }
     .separator {
       border-top: 1px dashed #000;
-      margin: 4px 0;
+      margin: 3px 0;
       height: 0;
-      overflow: hidden;
     }
     .row {
       display: flex;
       justify-content: space-between;
+      margin: 2px 0;
     }
     .item-nama {
       font-weight: 600;
+      margin-top: 3px;
+    }
+    @media print {
+      body { margin: 0; padding: 0; }
     }
   </style>
 </head>

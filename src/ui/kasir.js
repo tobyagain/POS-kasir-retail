@@ -91,7 +91,22 @@ async function renderKasir() {
           <div style="border:1px solid #e5e7eb; padding:1rem; border-radius:4px; background:#f9fafb;">
             <strong>Pembayaran</strong>
             <div id="pembayaran-list" class="mt-1"></div>
-            <button class="secondary mt-1" style="width:100%;" onclick="window.tambahPembayaran()">+ Tambah Metode</button>
+            
+            <div class="flex gap-1 mt-1" style="align-items:flex-end;">
+              <div style="flex:1;">
+                <label style="font-size:12px;">Metode</label>
+                <select id="select-metode-bayar" style="width:100%;">
+                  <option value="">-- Pilih --</option>
+                  <option value="tunai">Tunai</option>
+                  <option value="qris">QRIS</option>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <label style="font-size:12px;">Nominal</label>
+                <input type="number" id="input-nominal-bayar" placeholder="0" min="0" style="width:100%;">
+              </div>
+              <button class="primary" onclick="window.tambahPembayaran()" style="padding:0.5rem 1rem;">+</button>
+            </div>
           </div>
 
           <div class="flex mt-2" style="justify-content:space-between; font-size:16px;">
@@ -224,12 +239,28 @@ function renderKeranjang() {
 let pembayaranList = [];
 
 window.tambahPembayaran = () => {
-  const metode = prompt('Metode: tunai / qris / transfer / kartu', 'tunai');
-  if (!metode) return;
-  const jumlah = parseInt(prompt('Jumlah (Rp):', '0'));
-  if (!jumlah) return;
+  const metodeSelect = document.getElementById('select-metode-bayar');
+  const nominalInput = document.getElementById('input-nominal-bayar');
+
+  const metode = metodeSelect.value;
+  const jumlah = parseInt(nominalInput.value);
+
+  if (!metode) {
+    alert('Pilih metode pembayaran');
+    return;
+  }
+
+  if (!jumlah || jumlah <= 0) {
+    alert('Isi nominal');
+    return;
+  }
 
   pembayaranList.push({ metode, jumlah });
+  
+  // Reset input
+  metodeSelect.value = '';
+  nominalInput.value = '';
+
   renderPembayaran();
 };
 
@@ -247,7 +278,7 @@ function renderPembayaran() {
   } else {
     container.innerHTML = pembayaranList.map((p, i) => `
       <div class="flex" style="justify-content:space-between; align-items:center; margin-top:0.5rem;">
-        <span>${p.metode}</span>
+        <span>${capitalize(p.metode)}</span>
         <span>${formatRupiah(p.jumlah)}</span>
         <button class="secondary" style="padding:0.25rem 0.5rem;" onclick="window.hapusPembayaran(${i})">×</button>
       </div>
@@ -255,6 +286,10 @@ function renderPembayaran() {
   }
 
   hitungTotal();
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function hitungTotal() {

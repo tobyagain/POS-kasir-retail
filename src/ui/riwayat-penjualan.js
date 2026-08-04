@@ -1,6 +1,7 @@
 // UI Riwayat Penjualan (di tab Kasir, sub-view)
 import { listPenjualan, voidPenjualan } from '../services/saleService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
+import { cetakStruk } from '../services/printService.js';
 
 export async function showRiwayatPenjualan() {
   const shiftAktif = await getShiftTerbuka();
@@ -42,7 +43,8 @@ export async function showRiwayatPenjualan() {
             <td>${s.pembayaran.map(p => p.metode).join(', ')}</td>
             <td>${s.void ? '<span class="text-red">VOID</span>' : '<span class="text-green">OK</span>'}</td>
             <td>
-              ${!s.void ? `<button class="secondary" onclick="window.voidTransaksi('${s.id}', '${s.noStruk}')">Void</button>` : '-'}
+              <button class="secondary" onclick="window.reprintStruk('${s.id}')">Cetak</button>
+              ${!s.void ? `<button class="secondary" onclick="window.voidTransaksi('${s.id}', '${s.noStruk}')">Void</button>` : ''}
             </td>
           </tr>
         `).join('')}
@@ -50,6 +52,20 @@ export async function showRiwayatPenjualan() {
     </table>
   `;
 }
+
+window.reprintStruk = async (saleId) => {
+  try {
+    const { getPenjualan } = await import('../services/saleService.js');
+    const sale = await getPenjualan(saleId);
+    if (!sale) {
+      alert('Transaksi tidak ditemukan');
+      return;
+    }
+    await cetakStruk(sale);
+  } catch (err) {
+    alert('Gagal cetak: ' + err.message);
+  }
+};
 
 window.voidTransaksi = async (saleId, noStruk) => {
   const alasan = prompt(`Void transaksi ${noStruk}?\n\nAlasan:`, 'Salah input');
