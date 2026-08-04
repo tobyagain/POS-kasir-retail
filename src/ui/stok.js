@@ -1,4 +1,4 @@
-// UI Stok — opname, riwayat mutasi, produk menipis
+// UI Stok — Blue theme redesign: opname, riwayat mutasi, produk menipis
 import { listProduk } from '../services/productService.js';
 import { opnameStok, riwayatMutasi, produkMenurun } from '../services/stockService.js';
 
@@ -10,147 +10,219 @@ async function renderMain() {
   const menipis = await produkMenurun();
   const produkList = await listProduk({ aktif: true });
 
-  const container = document.getElementById('stok-content');
+  const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
-    <div class="flex gap-2 mb-2">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <h2 style="color:#0284c7; margin:0;">📊 Kelola Stok</h2>
       <button class="primary" onclick="window.showOpnameStok()">Opname Stok</button>
     </div>
 
     ${menipis.length > 0 ? `
-      <div style="background:#fef2f2; border:1px solid #fca5a5; padding:1rem; border-radius:4px; margin-bottom:1rem;">
-        <strong class="text-red">⚠ Stok Menipis (${menipis.length} produk)</strong>
-        <ul style="margin-top:0.5rem; padding-left:1.5rem;">
-          ${menipis.map(p => `<li>${p.nama}: <strong>${p.stok}</strong> ${p.satuan} (min: ${p.stokMin})</li>`).join('')}
+      <div class="card" style="background:#fef2f2; border:2px solid #fca5a5; margin-bottom:1.5rem;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+          <span style="font-size:24px;">⚠️</span>
+          <strong style="color:#dc2626; font-size:16px;">Stok Menipis (${menipis.length} produk)</strong>
+        </div>
+        <ul style="margin:0; padding-left:1.5rem; color:#991b1b;">
+          ${menipis.map(p => `
+            <li style="margin:4px 0;">
+              <strong>${p.nama}</strong>: ${p.stok} ${p.satuan} (min: ${p.stokMin})
+            </li>
+          `).join('')}
         </ul>
       </div>
     ` : ''}
 
-    <h3>Semua Produk</h3>
-    <table class="mt-1">
-      <thead>
-        <tr>
-          <th>Nama</th>
-          <th>Satuan</th>
-          <th>Stok</th>
-          <th>HPP</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${produkList.map(p => `
+    <div class="card">
+      <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📦 Semua Produk</h3>
+      <table>
+        <thead>
           <tr>
-            <td>${p.nama}</td>
-            <td>${p.satuan}</td>
-            <td class="text-right ${p.stok <= p.stokMin ? 'text-red' : ''}">${p.stok}</td>
-            <td class="text-right">${formatRupiah(p.hpp)}</td>
-            <td>
-              <button class="secondary" onclick="window.lihatMutasi('${p.id}', '${p.nama}')">Riwayat</button>
-            </td>
+            <th>Nama Produk</th>
+            <th>Satuan</th>
+            <th>Stok</th>
+            <th>HPP</th>
+            <th>Aksi</th>
           </tr>
-        `).join('')}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          ${produkList.map(p => `
+            <tr>
+              <td style="font-weight:600; color:#0f172a;">${p.nama}</td>
+              <td style="color:#64748b;">${p.satuan}</td>
+              <td class="text-right">
+                <span class="badge ${p.stok <= p.stokMin ? 'badge-danger' : 'badge-success'}">
+                  ${p.stok} ${p.satuan}
+                </span>
+              </td>
+              <td class="text-right" style="color:#64748b;">${formatRupiah(p.hpp)}</td>
+              <td>
+                <button class="secondary" style="padding:6px 12px; font-size:12px;" onclick="window.lihatMutasi('${p.id}', '${p.nama}')">Riwayat</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
 window.showOpnameStok = async () => {
   const produkList = await listProduk({ aktif: true });
 
-  const container = document.getElementById('stok-content');
+  const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
-    <h2>Opname Stok</h2>
-    <form id="form-opname" class="mt-2" style="max-width: 500px;">
-      <div class="mb-1">
-        <label>Produk <span class="text-red">*</span></label>
-        <select name="produkId" required>
-          <option value="">-- Pilih Produk --</option>
-          ${produkList.map(p => `<option value="${p.id}">${p.nama} (sistem: ${p.stok} ${p.satuan})</option>`).join('')}
-        </select>
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+      <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
+      <h2 style="color:#0284c7; margin:0;">Opname Stok</h2>
+    </div>
+
+    <div class="card" style="max-width:800px;">
+      <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:6px; padding:1rem; margin-bottom:1.5rem;">
+        <div style="font-weight:600; color:#92400e; margin-bottom:4px;">ℹ️ Tentang Opname Stok</div>
+        <p style="font-size:13px; color:#92400e; margin:0; line-height:1.5;">
+          Opname = koreksi stok manual. Gunakan saat ada selisih fisik vs sistem (misal: barang rusak, hilang, atau salah hitung).
+          Setiap perubahan tercatat sebagai mutasi.
+        </p>
       </div>
-      <div class="mb-1">
-        <label>Stok Fisik <span class="text-red">*</span></label>
-        <input type="number" name="stokFisik" required>
-      </div>
-      <div class="mb-1">
-        <label>Catatan</label>
-        <textarea name="catatan" rows="2" placeholder="Alasan koreksi"></textarea>
-      </div>
-      <div class="flex gap-1 mt-2">
-        <button type="submit" class="primary">Simpan Opname</button>
-        <button type="button" class="secondary" onclick="window.initStokUI()">Batal</button>
-      </div>
-    </form>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Produk</th>
+            <th>Stok Sistem</th>
+            <th>Stok Fisik (Baru)</th>
+            <th>Selisih</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${produkList.map(p => `
+            <tr id="row-${p.id}">
+              <td style="font-weight:600; color:#0f172a;">${p.nama}</td>
+              <td class="text-right">
+                <span class="badge badge-info">${p.stok} ${p.satuan}</span>
+              </td>
+              <td style="width:150px;">
+                <input type="number" id="input-${p.id}" value="${p.stok}" min="0" style="width:100%; padding:8px; text-align:right; font-weight:600;">
+              </td>
+              <td class="text-right" id="selisih-${p.id}" style="font-weight:700;">-</td>
+              <td>
+                <button class="primary" style="padding:6px 16px; font-size:12px;" onclick="window.simpanOpname('${p.id}', ${p.stok})">Simpan</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 
-  document.getElementById('form-opname').onsubmit = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const produkId = form.produkId.value;
-    const stokFisik = parseInt(form.stokFisik.value);
-    const catatan = form.catatan.value.trim();
+  // Attach input listeners untuk hitung selisih real-time
+  produkList.forEach(p => {
+    const input = document.getElementById(`input-${p.id}`);
+    const selisihLabel = document.getElementById(`selisih-${p.id}`);
+    
+    input.addEventListener('input', () => {
+      const stokBaru = parseInt(input.value) || 0;
+      const selisih = stokBaru - p.stok;
+      selisihLabel.textContent = selisih >= 0 ? `+${selisih}` : `${selisih}`;
+      selisihLabel.style.color = selisih > 0 ? '#10b981' : selisih < 0 ? '#dc2626' : '#64748b';
+    });
+  });
+};
 
-    try {
-      await opnameStok(produkId, stokFisik, catatan);
-      alert('Opname disimpan');
-      initStokUI();
-    } catch (err) {
-      alert('Gagal: ' + err.message);
-    }
-  };
+window.simpanOpname = async (produkId, stokLama) => {
+  const input = document.getElementById(`input-${produkId}`);
+  const stokBaru = parseInt(input.value);
+
+  if (isNaN(stokBaru) || stokBaru < 0) {
+    alert('Isi stok fisik yang valid');
+    return;
+  }
+
+  if (stokBaru === stokLama) {
+    alert('Stok tidak berubah');
+    return;
+  }
+
+  const selisih = stokBaru - stokLama;
+  const konfirm = confirm(`Opname stok?\n\nStok lama: ${stokLama}\nStok baru: ${stokBaru}\nSelisih: ${selisih >= 0 ? '+' : ''}${selisih}\n\nLanjutkan?`);
+  if (!konfirm) return;
+
+  try {
+    await opnameStok(produkId, stokBaru);
+    alert('✅ Opname berhasil disimpan');
+    
+    // Hapus row (visual feedback)
+    const row = document.getElementById(`row-${produkId}`);
+    if (row) row.style.opacity = '0.3';
+  } catch (err) {
+    alert('❌ Gagal: ' + err.message);
+  }
 };
 
 window.lihatMutasi = async (produkId, namaProduk) => {
   const mutasi = await riwayatMutasi(produkId);
 
-  const container = document.getElementById('stok-content');
+  const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
-    <h2>Riwayat Mutasi: ${namaProduk}</h2>
-    <button class="secondary mb-2" onclick="window.initStokUI()">← Kembali</button>
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+      <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
+      <h2 style="color:#0284c7; margin:0;">Riwayat Mutasi: ${namaProduk}</h2>
+    </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Tanggal</th>
-          <th>Tipe</th>
-          <th>Qty</th>
-          <th>Saldo Sesudah</th>
-          <th>Ref</th>
-          <th>Catatan</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${mutasi.map(m => `
-          <tr>
-            <td>${formatTanggal(m.tanggal)}</td>
-            <td>${tipeBadge(m.tipe)}</td>
-            <td class="text-right ${m.qty < 0 ? 'text-red' : 'text-green'}">${m.qty > 0 ? '+' : ''}${m.qty}</td>
-            <td class="text-right">${m.saldoSesudah}</td>
-            <td>${m.refNo || '-'}</td>
-            <td class="text-gray">${m.catatan}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
+    ${mutasi.length === 0 ? `
+      <div class="card" style="text-align:center; padding:3rem; color:#64748b;">
+        <div style="font-size:48px; margin-bottom:1rem;">📋</div>
+        <h3 style="color:#94a3b8; margin-bottom:0.5rem;">Belum Ada Mutasi</h3>
+        <p>Mutasi akan muncul setelah ada barang masuk, penjualan, atau opname</p>
+      </div>
+    ` : `
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Jenis</th>
+              <th>Keterangan</th>
+              <th>Qty</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${mutasi.map(m => `
+              <tr>
+                <td style="color:#64748b;">${formatTanggal(m.tanggal)}</td>
+                <td>
+                  <span class="badge ${m.jenis === 'masuk' ? 'badge-success' : m.jenis === 'keluar' ? 'badge-danger' : 'badge-warning'}">
+                    ${m.jenis}
+                  </span>
+                </td>
+                <td style="color:#64748b;">${m.keterangan}</td>
+                <td class="text-right" style="font-weight:700; color:${m.jenis === 'masuk' ? '#10b981' : '#dc2626'};">
+                  ${m.jenis === 'masuk' ? '+' : '-'}${m.qty}
+                </td>
+                <td class="text-right" style="font-weight:700; color:#0284c7;">${m.saldo}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `}
   `;
 };
-
-function tipeBadge(tipe) {
-  const badges = {
-    masuk: '<span style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:3px;font-size:12px;">Masuk</span>',
-    jual: '<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:3px;font-size:12px;">Jual</span>',
-    opname: '<span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:3px;font-size:12px;">Opname</span>',
-    retur: '<span style="background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:3px;font-size:12px;">Retur</span>',
-    void: '<span style="background:#e5e7eb;color:#374151;padding:2px 6px;border-radius:3px;font-size:12px;">Void</span>'
-  };
-  return badges[tipe] || tipe;
-}
 
 function formatRupiah(n) {
   return 'Rp ' + n.toLocaleString('id-ID');
 }
 
 function formatTanggal(ts) {
-  return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(ts).toLocaleString('id-ID', { 
+    day: '2-digit', 
+    month: 'short', 
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 window.initStokUI = initStokUI;
