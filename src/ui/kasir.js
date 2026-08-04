@@ -73,34 +73,28 @@ async function renderKasir() {
     <div style="display:grid; grid-template-columns:300px 1fr 340px; gap:1rem; height:calc(100vh - 120px);">
       <!-- KIRI: Input Produk -->
       <div style="display:flex; flex-direction:column; gap:1rem;">
-        <!-- Mode Tabs -->
+        <!-- Search Produk (Barcode atau Nama) -->
         <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
-          <div style="display:flex; background:#f1f5f9;">
-            <button class="tab-btn-mode ${inputMode === 'barcode' ? 'active' : ''}" onclick="window.switchMode('barcode')">
-              Scan Barcode <span class="shortcut-hint">Ctrl+B</span>
-            </button>
-            <button class="tab-btn-mode ${inputMode === 'produk' ? 'active' : ''}" onclick="window.switchMode('produk')">
-              Daftar Produk <span class="shortcut-hint">Ctrl+A</span>
-            </button>
+          <div style="padding:1rem; background:#0284c7;">
+            <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">🔍 CARI PRODUK</div>
+            <div style="font-size:11px; color:#bfdbfe;">Scan barcode atau ketik nama</div>
           </div>
 
           <div style="padding:1rem;">
-            <!-- Mode Barcode -->
-            <div id="mode-barcode" style="display:${inputMode === 'barcode' ? 'block' : 'none'};">
-              <label style="font-size:12px; font-weight:600; color:#64748b;">Scan / Ketik Barcode <span class="shortcut-hint">F5</span></label>
-              <input type="text" id="input-barcode" placeholder="Scan barcode..." style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px; margin-top:4px;" autofocus>
-            </div>
-
-            <!-- Mode Produk -->
-            <div id="mode-produk" style="display:${inputMode === 'produk' ? 'block' : 'none'};">
-              <label style="font-size:12px; font-weight:600; color:#64748b;">Cari Produk <span class="shortcut-hint">F4 / Ctrl+F</span></label>
-              <input type="text" id="input-search" placeholder="Cari nama produk..." style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px; margin-top:4px;">
+            <input 
+              type="text" 
+              id="input-search-produk" 
+              placeholder="Scan / Ketik nama produk..." 
+              style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;" 
+              autofocus>
+            <div style="font-size:11px; color:#64748b; margin-top:6px;">
+              <span class="shortcut-hint">F5</span> fokus input
             </div>
           </div>
         </div>
 
-        <!-- Grid Produk (hanya tampil di mode produk) -->
-        <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:${inputMode === 'produk' ? 'block' : 'none'};">
+        <!-- Grid Produk -->
+        <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
           <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
           <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
         </div>
@@ -183,49 +177,42 @@ async function renderKasir() {
 }
 
 window.switchMode = (mode) => {
-  inputMode = mode;
-  document.querySelectorAll('.tab-btn-mode').forEach(btn => btn.classList.remove('active'));
-  
-  if (mode === 'barcode') {
-    document.getElementById('mode-barcode').style.display = 'block';
-    document.getElementById('mode-produk').style.display = 'none';
-    document.getElementById('produk-panel').style.display = 'none';
-    document.querySelectorAll('.tab-btn-mode')[0].classList.add('active');
-    setTimeout(() => document.getElementById('input-barcode').focus(), 50);
-  } else {
-    document.getElementById('mode-barcode').style.display = 'none';
-    document.getElementById('mode-produk').style.display = 'block';
-    document.getElementById('produk-panel').style.display = 'block';
-    document.querySelectorAll('.tab-btn-mode')[1].classList.add('active');
-    setTimeout(() => document.getElementById('input-search').focus(), 50);
-  }
+  // Legacy function - tidak dipakai lagi setelah merge
 };
 
 function renderModeContent() {
-  // Barcode input handler
-  const inputBarcode = document.getElementById('input-barcode');
-  if (inputBarcode) {
-    inputBarcode.addEventListener('keypress', async (e) => {
-      if (e.key === 'Enter') {
-        const barcode = inputBarcode.value.trim();
-        if (!barcode) return;
-        
-        const produk = await cariByBarcode(barcode);
-        if (produk) {
-          tambahKeKeranjang(produk);
-          inputBarcode.value = '';
-        } else {
-          alert('Barcode tidak ditemukan');
-        }
-      }
-    });
-  }
-
-  // Search handler + render grid
-  const inputSearch = document.getElementById('input-search');
+  // Search unified: barcode atau nama
+  const inputSearch = document.getElementById('input-search-produk');
   if (inputSearch) {
     inputSearch.addEventListener('input', (e) => {
-      renderProdukGrid(e.target.value.toLowerCase());
+      const query = e.target.value.trim().toLowerCase();
+      renderProdukGrid(query);
+    });
+
+    inputSearch.addEventListener('keypress', async (e) => {
+      if (e.key === 'Enter') {
+        const query = inputSearch.value.trim();
+        if (!query) return;
+
+        // Coba cari by barcode dulu (exact match)
+        const byBarcode = await cariByBarcode(query);
+        if (byBarcode) {
+          tambahKeKeranjang(byBarcode);
+          inputSearch.value = '';
+          renderProdukGrid();
+          return;
+        }
+
+        // Kalau tidak ketemu barcode, cari by nama (fuzzy)
+        const byNama = produkList.find(p => p.nama.toLowerCase().includes(query));
+        if (byNama) {
+          tambahKeKeranjang(byNama);
+          inputSearch.value = '';
+          renderProdukGrid();
+        } else {
+          alert('Produk tidak ditemukan');
+        }
+      }
     });
   }
 
@@ -487,40 +474,16 @@ window.resetKeranjang = () => {
 // Keyboard Shortcuts
 function initShortcuts() {
   document.addEventListener('keydown', (e) => {
-    // F4 - Fokus search produk
-    if (e.key === 'F4') {
-      e.preventDefault();
-      if (inputMode !== 'produk') window.switchMode('produk');
-      document.getElementById('input-search')?.focus();
-    }
-    
-    // F5 - Fokus barcode
+    // F5 - Fokus input search produk
     if (e.key === 'F5') {
       e.preventDefault();
-      if (inputMode !== 'barcode') window.switchMode('barcode');
-      document.getElementById('input-barcode')?.focus();
+      document.getElementById('input-search-produk')?.focus();
     }
     
-    // Ctrl+A - Tab Daftar Produk
-    if (e.ctrlKey && e.key === 'a') {
-      e.preventDefault();
-      window.switchMode('produk');
-    }
-    
-    // Ctrl+B - Tab Barcode
-    if (e.ctrlKey && e.key === 'b') {
-      e.preventDefault();
-      window.switchMode('barcode');
-    }
-    
-    // Ctrl+F - Cari (fokus ke input aktif)
+    // Ctrl+F - Cari produk
     if (e.ctrlKey && e.key === 'f') {
       e.preventDefault();
-      if (inputMode === 'barcode') {
-        document.getElementById('input-barcode')?.focus();
-      } else {
-        document.getElementById('input-search')?.focus();
-      }
+      document.getElementById('input-search-produk')?.focus();
     }
     
     // Ctrl+P - Riwayat (reprint)
