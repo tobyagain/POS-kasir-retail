@@ -69,8 +69,8 @@ export function renderHTML(receiptDoc, width = '58') {
     }
     .bold { font-weight: 700; }
     .separator {
-      border-top: 2px dashed #000;
-      margin: 5px 0;
+      border-top: 1px solid #000;
+      margin: 4px 0;
     }
     .row {
       display: flex;
