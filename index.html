@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Retail UMKM</title>
+  <link rel="stylesheet" href="src/ui/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Tab navigation -->
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="kasir">Kasir</button>
+      <button class="tab-btn" data-tab="produk">Produk</button>
+      <button class="tab-btn" data-tab="barang-masuk">Barang Masuk</button>
+      <button class="tab-btn" data-tab="stok">Stok</button>
+      <button class="tab-btn" data-tab="shift">Shift</button>
+      <button class="tab-btn" data-tab="kas">Kas</button>
+      <button class="tab-btn" data-tab="laporan">Laporan</button>
+      <button class="tab-btn" data-tab="pengaturan">Pengaturan</button>
+    </nav>
+
+    <!-- Tab content -->
+    <div id="tab-content">
+      <div class="tab-panel active" data-panel="kasir">
+        <h1>Kasir</h1>
+        <p>Layar kasir (Tahap 2)</p>
+      </div>
+
+      <div class="tab-panel" data-panel="produk">
+        <h1>Produk</h1>
+        <div id="produk-content"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="barang-masuk">
+        <h1>Barang Masuk</h1>
+        <div id="barang-masuk-content"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="stok">
+        <h1>Stok</h1>
+        <div id="stok-content"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="shift">
+        <h1>Shift</h1>
+        <p>Layar shift (Tahap 3)</p>
+      </div>
+
+      <div class="tab-panel" data-panel="kas">
+        <h1>Kas</h1>
+        <p>Cashflow (Tahap 4)</p>
+      </div>
+
+      <div class="tab-panel" data-panel="laporan">
+        <h1>Laporan</h1>
+        <p>Laporan (Tahap 5)</p>
+      </div>
+
+      <div class="tab-panel" data-panel="pengaturan">
+        <h1>Pengaturan</h1>
+        <div id="pengaturan-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
