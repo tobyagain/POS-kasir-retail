@@ -24,10 +24,11 @@ export async function buatProduk({ barcode, nama, kategori, satuan, hargaJual, s
 
 // Update produk (hanya field yang boleh diubah manual: nama, harga, kategori, stokMin, aktif)
 // stok & HPP tidak boleh diubah langsung — harus lewat barang masuk / opname
-export async function updateProduk(id, { nama, kategori, satuan, hargaJual, stokMin, aktif }) {
+export async function updateProduk(id, { barcode, nama, kategori, satuan, hargaJual, stokMin, aktif }) {
   const produk = await getByKey('products', id);
   if (!produk) throw new Error('Produk tidak ditemukan');
 
+  if (barcode !== undefined) produk.barcode = barcode || null;
   if (nama !== undefined) produk.nama = nama;
   if (kategori !== undefined) produk.kategori = kategori;
   if (satuan !== undefined) produk.satuan = satuan;

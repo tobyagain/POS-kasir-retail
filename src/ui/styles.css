@@ -12,20 +12,16 @@ body {
   color: #0f172a; 
   margin: 0;
   padding: 0;
-}
-
-.container { 
-  max-width: 1400px; 
-  margin: 0 auto; 
-  padding: 1rem; 
+  overflow: hidden;
 }
 
 /* App wrapper */
 #app {
   background: #dbeafe;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* Tabs Navigation */

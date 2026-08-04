@@ -87,8 +87,12 @@ async function renderShiftAktif(shift) {
   const totalTransaksi = salesValid.length;
   const totalVoid = salesVoid.length;
   const totalOmzet = salesValid.reduce((sum, s) => sum + s.totalNetto, 0);
+  
+  // Tunai terkumpul = tunai dibayar - kembalian (yang masuk laci)
   const totalTunai = salesValid.reduce((sum, s) => {
-    return sum + s.pembayaran.filter(p => p.metode === 'tunai').reduce((s, p) => s + p.jumlah, 0);
+    const tunaiDibayar = s.pembayaran.filter(p => p.metode === 'tunai').reduce((s, p) => s + p.jumlah, 0);
+    const kembalian = s.kembalian || 0;
+    return sum + (tunaiDibayar - kembalian);
   }, 0);
 
   const kasMasuk = cashflows.filter(c => c.jenis === 'masuk' && c.tunai).reduce((sum, c) => sum + c.nominal, 0);
