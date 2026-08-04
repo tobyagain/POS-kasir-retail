@@ -118,7 +118,6 @@ async function renderPengaturan() {
       }
     </style>
 
-    <!-- Identitas Toko -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('toko')">
         <h2>🏪 Identitas Toko</h2>
@@ -126,18 +125,18 @@ async function renderPengaturan() {
       </div>
       <div class="accordion-content" id="content-toko">
         <div class="accordion-body">
-          <form id="form-toko">
+          <form id="form-toko" style="max-width:600px;">
             <div class="mb-1">
               <label>Nama Toko <span class="text-red">*</span></label>
-              <input type="text" name="nama" value="${toko.value?.nama || ''}" required>
+              <input type="text" name="nama" value="${toko.value?.nama || ''}" required style="width:100%;">
             </div>
             <div class="mb-1">
               <label>Alamat</label>
-              <textarea name="alamat" rows="2">${toko.value?.alamat || ''}</textarea>
+              <textarea name="alamat" rows="3" style="width:100%;">${toko.value?.alamat || ''}</textarea>
             </div>
             <div class="mb-1">
               <label>Telp / WhatsApp</label>
-              <input type="text" name="telp" value="${toko.value?.telp || ''}">
+              <input type="text" name="telp" value="${toko.value?.telp || ''}" style="width:100%;">
             </div>
             <button type="submit" class="primary" style="width:100%;">Simpan</button>
           </form>
