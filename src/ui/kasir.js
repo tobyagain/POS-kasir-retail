@@ -85,14 +85,29 @@ async function renderKasir() {
             <span id="label-total">Rp 0</span>
           </div>
 
-          <!-- Metode Bayar: Tombol Besar -->
+          <!-- Metode Bayar: Inline Input -->
           <div style="margin-bottom:1rem;">
             <strong style="display:block; margin-bottom:0.5rem;">Bayar</strong>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:0.5rem;">
-              <button onclick="window.bayarTunai()" style="padding:16px; font-size:16px; font-weight:600; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">💵 TUNAI</button>
-              <button onclick="window.bayarQRIS()" style="padding:16px; font-size:16px; font-weight:600; background:#3b82f6; color:#fff; border:none; border-radius:6px; cursor:pointer;">📱 QRIS</button>
+            
+            <!-- Input Tunai -->
+            <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <span style="font-size:18px;">💵</span>
+                <strong style="flex:1;">TUNAI</strong>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="number" id="input-tunai" placeholder="0" min="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;">
+                <button onclick="window.bayarTunai()" style="padding:12px 24px; font-size:16px; font-weight:600; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">+</button>
+              </div>
             </div>
-            <div id="pembayaran-list"></div>
+
+            <!-- Tombol QRIS -->
+            <button onclick="window.bayarQRIS()" style="width:100%; padding:16px; font-size:16px; font-weight:600; background:#3b82f6; color:#fff; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <span style="font-size:20px;">📱</span>
+              <span>QRIS (Bayar Pas)</span>
+            </button>
+
+            <div id="pembayaran-list" style="margin-top:8px;"></div>
             <div id="kembalian-info" style="margin-top:8px; padding:12px; background:#d1fae5; border-radius:6px; font-size:16px; font-weight:700; display:none;">
               Kembalian: <span id="label-kembalian" style="color:#059669;">Rp 0</span>
             </div>
@@ -214,6 +229,15 @@ function renderKeranjang() {
 let pembayaranList = [];
 
 window.bayarTunai = () => {
+  const inputTunai = document.getElementById('input-tunai');
+  const nominal = parseInt(inputTunai.value);
+
+  if (isNaN(nominal) || nominal <= 0) {
+    alert('Isi nominal tunai');
+    inputTunai.focus();
+    return;
+  }
+
   const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
   
   if (totalNetto <= 0) {
@@ -221,25 +245,9 @@ window.bayarTunai = () => {
     return;
   }
 
-  const sudahBayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
-  const sisa = totalNetto - sudahBayar;
-
-  if (sisa <= 0) {
-    alert('Sudah lunas');
-    return;
-  }
-
-  // Prompt nominal tunai (bisa lebih dari sisa = ada kembalian)
-  const nominalStr = prompt(`Sisa: ${formatRupiah(sisa)}\n\nBayar tunai (Rp):`, sisa);
-  if (!nominalStr) return;
-
-  const nominal = parseInt(nominalStr);
-  if (isNaN(nominal) || nominal <= 0) {
-    alert('Nominal tidak valid');
-    return;
-  }
-
   pembayaranList.push({ metode: 'tunai', jumlah: nominal });
+  inputTunai.value = '';
+  inputTunai.focus();
   renderPembayaran();
 };
 

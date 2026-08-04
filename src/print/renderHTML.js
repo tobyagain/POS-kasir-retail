@@ -41,8 +41,8 @@ export function renderHTML(receiptDoc, width = '58') {
   <title>Struk</title>
   <style>
     @page {
-      size: ${paperWidth} auto;
-      margin: 5mm 2mm;
+      size: ${paperWidth === '80mm' ? '72mm' : '48mm'} auto;
+      margin: 0;
     }
     * {
       margin: 0;
@@ -50,47 +50,35 @@ export function renderHTML(receiptDoc, width = '58') {
       box-sizing: border-box;
     }
     body {
-      font-family: 'Courier New', 'Consolas', monospace;
-      font-size: 12px;
-      line-height: 1.4;
+      font: 600 12px/1.45 Arial, Helvetica, sans-serif;
       color: #000;
-      width: ${paperWidth};
-      padding: 0;
-      font-weight: bold;
-    }
-    .receipt {
-      width: 100%;
+      background: #fff;
+      padding: 1mm 2mm 6mm;
+      overflow-wrap: anywhere;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .receipt > div {
       margin: 2px 0;
     }
-    .left { text-align: left; }
     .center { text-align: center; }
-    .right { text-align: right; }
     .large { 
-      font-size: 16px; 
-      font-weight: bold;
-      margin: 4px 0;
-      letter-spacing: 0.5px;
+      font-size: 15px;
+      font-weight: 700;
+      margin: 3px 0;
     }
-    .bold { font-weight: bold; }
+    .bold { font-weight: 700; }
     .separator {
-      border-top: 2px solid #000;
+      border-top: 2px dashed #000;
       margin: 5px 0;
-      height: 0;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      margin: 3px 0;
-    }
-    .item-nama {
-      font-weight: bold;
-      margin-top: 4px;
+      gap: 6px;
     }
     @media print {
-      body { margin: 0; padding: 0; }
-      .receipt > div { page-break-inside: avoid; }
+      body { margin: 0; padding: 1mm 2mm 6mm; }
     }
   </style>
 </head>
