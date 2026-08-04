@@ -1,0 +1,10 @@
+{
+  "name": "pos-retail",
+  "version": "0.0.1",
+  "description": "POS retail UMKM — offline-first, satu device, IndexedDB. Lihat CLAUDE.md.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}
