@@ -51,43 +51,46 @@ export function renderHTML(receiptDoc, width = '58') {
     }
     body {
       font-family: 'Courier New', 'Consolas', monospace;
-      font-size: 11px;
-      line-height: 1.3;
+      font-size: 12px;
+      line-height: 1.4;
       color: #000;
       width: ${paperWidth};
       padding: 0;
+      font-weight: bold;
     }
     .receipt {
       width: 100%;
     }
     .receipt > div {
-      margin: 1px 0;
+      margin: 2px 0;
     }
     .left { text-align: left; }
     .center { text-align: center; }
     .right { text-align: right; }
     .large { 
-      font-size: 14px; 
+      font-size: 16px; 
       font-weight: bold;
-      margin: 3px 0;
+      margin: 4px 0;
+      letter-spacing: 0.5px;
     }
     .bold { font-weight: bold; }
     .separator {
-      border-top: 1px dashed #000;
-      margin: 3px 0;
+      border-top: 2px solid #000;
+      margin: 5px 0;
       height: 0;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      margin: 2px 0;
+      margin: 3px 0;
     }
     .item-nama {
-      font-weight: 600;
-      margin-top: 3px;
+      font-weight: bold;
+      margin-top: 4px;
     }
     @media print {
       body { margin: 0; padding: 0; }
+      .receipt > div { page-break-inside: avoid; }
     }
   </style>
 </head>
