@@ -1,4 +1,4 @@
-// UI Kasir — Mobile-optimized, tap-friendly
+// UI Kasir — Redesign: 2-tone Blue+Green, keyboard shortcuts
 import { cariByBarcode, cariByNama, listProduk } from '../services/productService.js';
 import { simpanPenjualan } from '../services/saleService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
@@ -7,6 +7,7 @@ import { cetakStruk } from '../services/printService.js';
 let keranjang = [];
 let shiftAktif = null;
 let produkList = [];
+let inputMode = 'barcode'; // 'barcode' | 'produk'
 
 export async function initKasirUI() {
   shiftAktif = await getShiftTerbuka();
@@ -18,6 +19,7 @@ export async function initKasirUI() {
 
   produkList = await listProduk({ aktif: true });
   await renderKasir();
+  initShortcuts();
 }
 
 function renderGuardShift() {
@@ -38,99 +40,190 @@ window.goToShift = () => {
 async function renderKasir() {
   const container = document.querySelector('[data-panel="kasir"]');
   container.innerHTML = `
-    <div style="display:flex; flex-direction:column; height:calc(100vh - 120px); gap:1rem;">
-      <!-- Top: Search + Riwayat -->
-      <div style="background:#fff; padding:1rem; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-        <div class="flex gap-1">
-          <input type="text" id="input-search" placeholder="Cari produk (nama/barcode)..." style="flex:1; font-size:16px; padding:12px;" autofocus>
-          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:12px 24px;">Riwayat</button>
+    <style>
+      .shortcut-hint { 
+        display: inline-block; 
+        background: #e0f2fe; 
+        color: #0369a1; 
+        padding: 2px 6px; 
+        border-radius: 3px; 
+        font-size: 11px; 
+        font-weight: 600; 
+        margin-left: 6px;
+      }
+      .tab-btn-mode { 
+        padding: 10px 20px; 
+        border: none; 
+        background: #e0f2fe; 
+        color: #0369a1; 
+        font-weight: 600; 
+        cursor: pointer; 
+        border-radius: 6px 6px 0 0;
+      }
+      .tab-btn-mode.active { 
+        background: #0284c7; 
+        color: #fff; 
+      }
+    </style>
+
+    <div style="display:grid; grid-template-columns:300px 1fr 340px; gap:1rem; height:calc(100vh - 120px);">
+      <!-- KIRI: Input Produk -->
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <!-- Mode Tabs -->
+        <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+          <div style="display:flex; background:#f1f5f9;">
+            <button class="tab-btn-mode ${inputMode === 'barcode' ? 'active' : ''}" onclick="window.switchMode('barcode')">
+              Scan Barcode <span class="shortcut-hint">Ctrl+B</span>
+            </button>
+            <button class="tab-btn-mode ${inputMode === 'produk' ? 'active' : ''}" onclick="window.switchMode('produk')">
+              Daftar Produk <span class="shortcut-hint">Ctrl+A</span>
+            </button>
+          </div>
+
+          <div style="padding:1rem;">
+            <!-- Mode Barcode -->
+            <div id="mode-barcode" style="display:${inputMode === 'barcode' ? 'block' : 'none'};">
+              <label style="font-size:12px; font-weight:600; color:#64748b;">Scan / Ketik Barcode <span class="shortcut-hint">F5</span></label>
+              <input type="text" id="input-barcode" placeholder="Scan barcode..." style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px; margin-top:4px;" autofocus>
+            </div>
+
+            <!-- Mode Produk -->
+            <div id="mode-produk" style="display:${inputMode === 'produk' ? 'block' : 'none'};">
+              <label style="font-size:12px; font-weight:600; color:#64748b;">Cari Produk <span class="shortcut-hint">F4</span></label>
+              <input type="text" id="input-search" placeholder="Cari nama produk..." style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px; margin-top:4px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid Produk (hanya tampil di mode produk) -->
+        <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:${inputMode === 'produk' ? 'block' : 'none'};">
+          <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK <span class="shortcut-hint">F2</span></div>
+          <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
+        </div>
+
+        <!-- Info Shift -->
+        <div style="background:#0284c7; color:#fff; padding:12px; border-radius:8px; font-size:12px;">
+          <strong>Shift:</strong> ${shiftAktif.kasir}
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 380px; gap:1rem; flex:1; overflow:hidden;">
-        <!-- Kiri: Grid Produk + Keranjang -->
-        <div style="display:flex; flex-direction:column; gap:1rem; overflow:hidden;">
-          <!-- Grid Produk (tap to add) -->
-          <div style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-            <h3 style="margin-bottom:0.5rem;">Produk (Tap untuk tambah)</h3>
-            <div id="produk-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px;"></div>
-          </div>
-
-          <!-- Keranjang -->
-          <div style="background:#fff; padding:1rem; border-radius:8px; max-height:280px; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-            <h3>Keranjang</h3>
-            <div id="keranjang-content"></div>
-          </div>
+      <!-- TENGAH: Keranjang (Fokus Utama) -->
+      <div style="background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
+          <h2 style="margin:0; color:#0f172a;">DAFTAR ITEM <span class="shortcut-hint">F1</span></h2>
+          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:8px 16px;">Riwayat</button>
         </div>
 
-        <!-- Kanan: Total & Bayar -->
-        <div style="background:#fff; padding:1.5rem; border-radius:8px; display:flex; flex-direction:column; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-          <div style="font-size:12px; color:#6b7280; margin-bottom:1rem;">
-            Shift: <strong>${shiftAktif.kasir}</strong>
-          </div>
+        <div id="keranjang-content" style="flex:1; overflow-y:auto;"></div>
 
-          <div style="border-bottom:2px solid #e5e7eb; padding-bottom:1rem; margin-bottom:1rem;">
-            <div class="flex" style="justify-content:space-between; margin-bottom:0.5rem; font-size:14px;">
-              <span>Subtotal</span>
-              <span id="label-subtotal" style="font-weight:600;">Rp 0</span>
-            </div>
-            <div class="flex" style="justify-content:space-between; align-items:center;">
-              <span style="font-size:14px;">Diskon</span>
-              <input type="number" id="input-diskon-nota" value="0" style="width:120px; text-align:right; padding:8px;" min="0">
-            </div>
+        <div style="border-top:2px solid #e2e8f0; padding-top:1rem; margin-top:1rem;">
+          <div class="flex" style="justify-content:space-between; margin-bottom:8px;">
+            <span style="font-size:14px; color:#64748b;">Diskon Nota</span>
+            <input type="number" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px;" min="0">
           </div>
-
-          <div class="flex" style="justify-content:space-between; font-size:24px; font-weight:700; margin-bottom:1.5rem; color:#1a1a1a;">
+          <div class="flex" style="justify-content:space-between; font-size:28px; font-weight:700; color:#0f172a;">
             <span>TOTAL</span>
-            <span id="label-total">Rp 0</span>
-          </div>
-
-          <!-- Metode Bayar: Inline Input -->
-          <div style="margin-bottom:1rem;">
-            <strong style="display:block; margin-bottom:0.5rem;">Bayar</strong>
-            
-            <!-- Input Tunai -->
-            <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:8px;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                <span style="font-size:18px;">💵</span>
-                <strong style="flex:1;">TUNAI</strong>
-              </div>
-              <div style="display:flex; gap:8px;">
-                <input type="number" id="input-tunai" placeholder="0" min="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;">
-                <button onclick="window.bayarTunai()" style="padding:12px 24px; font-size:16px; font-weight:600; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">+</button>
-              </div>
-            </div>
-
-            <!-- Tombol QRIS -->
-            <button onclick="window.bayarQRIS()" style="width:100%; padding:16px; font-size:16px; font-weight:600; background:#3b82f6; color:#fff; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-              <span style="font-size:20px;">📱</span>
-              <span>QRIS (Bayar Pas)</span>
-            </button>
-
-            <div id="pembayaran-list" style="margin-top:8px;"></div>
-            <div id="kembalian-info" style="margin-top:8px; padding:12px; background:#d1fae5; border-radius:6px; font-size:16px; font-weight:700; display:none;">
-              Kembalian: <span id="label-kembalian" style="color:#059669;">Rp 0</span>
-            </div>
-          </div>
-
-          <div class="flex gap-1">
-            <button class="primary" style="flex:1; padding:16px; font-size:18px; font-weight:700;" onclick="window.selesaiBayar()">BAYAR</button>
-            <button class="secondary" style="padding:16px;" onclick="window.resetKeranjang()">Reset</button>
+            <span id="label-total" style="color:#0284c7;">Rp 0</span>
           </div>
         </div>
+      </div>
+
+      <!-- KANAN: Panel Bayar -->
+      <div style="background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
+        <h3 style="margin:0 0 1rem 0; color:#0f172a;">PEMBAYARAN</h3>
+
+        <!-- Input Tunai -->
+        <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+            <span style="font-size:18px;">💵</span>
+            <strong style="flex:1; color:#047857;">TUNAI</strong>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="input-tunai" placeholder="0" min="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;">
+            <button onclick="window.bayarTunai()" style="padding:12px 20px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">+</button>
+          </div>
+        </div>
+
+        <!-- Tombol QRIS -->
+        <button onclick="window.bayarQRIS()" style="width:100%; padding:16px; font-size:16px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+          <span style="font-size:20px;">📱</span>
+          <span>QRIS (Bayar Pas)</span>
+        </button>
+
+        <!-- List Pembayaran -->
+        <div id="pembayaran-list" style="margin-bottom:12px;"></div>
+
+        <!-- Kembalian -->
+        <div id="kembalian-info" style="padding:12px; background:#d1fae5; border-radius:6px; font-size:16px; font-weight:700; margin-bottom:12px; display:none;">
+          Kembalian: <span id="label-kembalian" style="color:#047857;">Rp 0</span>
+        </div>
+
+        <!-- Tombol Bayar -->
+        <button onclick="window.selesaiBayar()" style="width:100%; padding:18px; font-size:20px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:8px; cursor:pointer; margin-top:auto;">
+          BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857;">Ctrl+Z</span>
+        </button>
+
+        <button onclick="window.resetKeranjang()" style="width:100%; padding:12px; margin-top:8px; font-size:14px; background:#f1f5f9; color:#64748b; border:none; border-radius:6px; cursor:pointer;">
+          Reset
+        </button>
       </div>
     </div>
   `;
 
-  renderProdukGrid();
+  renderModeContent();
   renderKeranjang();
 
-  // Search real-time
-  document.getElementById('input-search').addEventListener('input', (e) => {
-    renderProdukGrid(e.target.value.toLowerCase());
-  });
-
   document.getElementById('input-diskon-nota').addEventListener('input', hitungTotal);
+}
+
+window.switchMode = (mode) => {
+  inputMode = mode;
+  document.querySelectorAll('.tab-btn-mode').forEach(btn => btn.classList.remove('active'));
+  
+  if (mode === 'barcode') {
+    document.getElementById('mode-barcode').style.display = 'block';
+    document.getElementById('mode-produk').style.display = 'none';
+    document.getElementById('produk-panel').style.display = 'none';
+    document.querySelectorAll('.tab-btn-mode')[0].classList.add('active');
+    setTimeout(() => document.getElementById('input-barcode').focus(), 50);
+  } else {
+    document.getElementById('mode-barcode').style.display = 'none';
+    document.getElementById('mode-produk').style.display = 'block';
+    document.getElementById('produk-panel').style.display = 'block';
+    document.querySelectorAll('.tab-btn-mode')[1].classList.add('active');
+    setTimeout(() => document.getElementById('input-search').focus(), 50);
+  }
+};
+
+function renderModeContent() {
+  // Barcode input handler
+  const inputBarcode = document.getElementById('input-barcode');
+  if (inputBarcode) {
+    inputBarcode.addEventListener('keypress', async (e) => {
+      if (e.key === 'Enter') {
+        const barcode = inputBarcode.value.trim();
+        if (!barcode) return;
+        
+        const produk = await cariByBarcode(barcode);
+        if (produk) {
+          tambahKeKeranjang(produk);
+          inputBarcode.value = '';
+        } else {
+          alert('Barcode tidak ditemukan');
+        }
+      }
+    });
+  }
+
+  // Search handler + render grid
+  const inputSearch = document.getElementById('input-search');
+  if (inputSearch) {
+    inputSearch.addEventListener('input', (e) => {
+      renderProdukGrid(e.target.value.toLowerCase());
+    });
+  }
+
+  renderProdukGrid();
 }
 
 function renderProdukGrid(searchQuery = '') {
@@ -150,23 +243,20 @@ function renderProdukGrid(searchQuery = '') {
     return;
   }
 
-  grid.innerHTML = filtered.slice(0, 20).map(p => `
+  grid.innerHTML = filtered.slice(0, 30).map(p => `
     <button onclick="window.tambahKeKeranjangById('${p.id}')" 
-            style="padding:12px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; cursor:pointer; text-align:left; transition:all 0.2s;"
-            onmouseover="this.style.background='#f3f4f6'; this.style.borderColor='#d1d5db';"
-            onmouseout="this.style.background='#f9fafb'; this.style.borderColor='#e5e7eb';">
-      <div style="font-weight:600; font-size:13px; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.nama}</div>
-      <div style="font-size:14px; font-weight:700; color:#2563eb;">${formatRupiah(p.hargaJual)}</div>
-      <div style="font-size:11px; color:#6b7280; margin-top:2px;">Stok: ${p.stok}</div>
+            style="padding:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; text-align:left; transition:all 0.2s;"
+            onmouseover="this.style.background='#e0f2fe'; this.style.borderColor='#0284c7';"
+            onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';">
+      <div style="font-weight:600; font-size:13px; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#0f172a;">${p.nama}</div>
+      <div style="font-size:14px; font-weight:700; color:#0284c7;">${formatRupiah(p.hargaJual)}</div>
+      <div style="font-size:10px; color:#64748b; margin-top:2px;">Stok: ${p.stok}</div>
     </button>
   `).join('');
 }
 
-window.tambahKeKeranjangById = (produkId) => {
-  const produk = produkList.find(p => p.id === produkId);
-  if (!produk) return;
-
-  const existing = keranjang.find(it => it.produkId === produkId);
+function tambahKeKeranjang(produk) {
+  const existing = keranjang.find(it => it.produkId === produk.id);
   if (existing) {
     existing.qty++;
     existing.subtotal = existing.qty * existing.hargaJualSnapshot - existing.diskonItem;
@@ -182,6 +272,12 @@ window.tambahKeKeranjangById = (produkId) => {
     });
   }
   renderKeranjang();
+}
+
+window.tambahKeKeranjangById = (produkId) => {
+  const produk = produkList.find(p => p.id === produkId);
+  if (!produk) return;
+  tambahKeKeranjang(produk);
 };
 
 window.ubahQty = (index, delta) => {
@@ -204,20 +300,22 @@ function renderKeranjang() {
   if (!container) return;
 
   if (keranjang.length === 0) {
-    container.innerHTML = '<div class="text-gray" style="margin-top:0.5rem;">Keranjang kosong</div>';
+    container.innerHTML = '<div style="text-align:center; padding:3rem; color:#94a3b8;">Keranjang kosong<br>Scan barcode atau pilih produk</div>';
   } else {
     container.innerHTML = keranjang.map((it, i) => `
-      <div style="border-bottom:1px solid #e5e7eb; padding:8px 0; display:flex; justify-content:space-between; align-items:center;">
-        <div style="flex:1;">
-          <div style="font-weight:600; font-size:14px;">${it.nama}</div>
-          <div style="font-size:13px; color:#6b7280;">${formatRupiah(it.hargaJualSnapshot)} × ${it.qty}</div>
+      <div style="border:2px solid #e2e8f0; border-radius:6px; padding:12px; margin-bottom:8px; background:#fafafa;">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:15px; color:#0f172a; margin-bottom:4px;">${it.nama}</div>
+            <div style="font-size:13px; color:#64748b;">${formatRupiah(it.hargaJualSnapshot)} × ${it.qty}</div>
+          </div>
+          <div style="font-weight:700; font-size:16px; color:#0284c7;">${formatRupiah(it.subtotal)}</div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button onclick="window.ubahQty(${i}, -1)" style="padding:4px 12px; background:#e5e7eb; border:none; border-radius:4px; cursor:pointer; font-size:16px;">−</button>
-          <span style="font-weight:700; min-width:30px; text-align:center;">${it.qty}</span>
-          <button onclick="window.ubahQty(${i}, 1)" style="padding:4px 12px; background:#e5e7eb; border:none; border-radius:4px; cursor:pointer; font-size:16px;">+</button>
-          <span style="font-weight:700; color:#2563eb; min-width:80px; text-align:right;">${formatRupiah(it.subtotal)}</span>
-          <button onclick="window.hapusItem(${i})" style="padding:4px 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer;">×</button>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button onclick="window.ubahQty(${i}, -1)" style="padding:6px 12px; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700;">−</button>
+          <span style="font-weight:700; min-width:40px; text-align:center; font-size:16px;">${it.qty}</span>
+          <button onclick="window.ubahQty(${i}, 1)" style="padding:6px 12px; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700;">+</button>
+          <button onclick="window.hapusItem(${i})" style="padding:6px 12px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; margin-left:auto;">Hapus</button>
         </div>
       </div>
     `).join('');
@@ -267,7 +365,6 @@ window.bayarQRIS = () => {
     return;
   }
 
-  // QRIS selalu pas (tidak ada kembalian)
   pembayaranList.push({ metode: 'qris', jumlah: sisa });
   renderPembayaran();
 };
@@ -288,12 +385,12 @@ function renderPembayaran() {
 
   if (pembayaranList.length > 0) {
     container.innerHTML = `
-      <div style="background:#f9fafb; padding:8px; border-radius:4px; margin-top:8px;">
+      <div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
         ${pembayaranList.map((p, i) => `
           <div class="flex" style="justify-content:space-between; align-items:center; margin:4px 0;">
-            <span style="font-weight:600;">${capitalize(p.metode)}</span>
-            <span style="font-weight:700;">${formatRupiah(p.jumlah)}</span>
-            <button onclick="window.hapusPembayaran(${i})" style="padding:2px 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer;">×</button>
+            <span style="font-weight:600; color:#475569;">${capitalize(p.metode)}</span>
+            <span style="font-weight:700; color:#0f172a;">${formatRupiah(p.jumlah)}</span>
+            <button onclick="window.hapusPembayaran(${i})" style="padding:3px 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700;">×</button>
           </div>
         `).join('')}
       </div>
@@ -302,7 +399,6 @@ function renderPembayaran() {
     container.innerHTML = '';
   }
 
-  // Tampilkan kembalian jika ada
   if (kembalian > 0) {
     kembalianInfo.style.display = 'block';
     document.getElementById('label-kembalian').textContent = formatRupiah(kembalian);
@@ -317,9 +413,7 @@ function hitungTotal() {
   const subtotal = keranjang.reduce((sum, it) => sum + it.subtotal, 0);
   const diskonNota = parseInt(document.getElementById('input-diskon-nota')?.value || 0);
   const total = subtotal - diskonNota;
-  const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
 
-  document.getElementById('label-subtotal').textContent = formatRupiah(subtotal);
   document.getElementById('label-total').textContent = formatRupiah(total);
 }
 
@@ -373,11 +467,89 @@ window.resetKeranjang = () => {
   keranjang = [];
   pembayaranList = [];
   document.getElementById('input-diskon-nota').value = '0';
-  document.getElementById('input-search').value = '';
-  renderProdukGrid();
+  if (inputMode === 'barcode') {
+    document.getElementById('input-barcode').value = '';
+    document.getElementById('input-barcode').focus();
+  } else {
+    document.getElementById('input-search').value = '';
+    renderProdukGrid();
+  }
   renderKeranjang();
   renderPembayaran();
 };
+
+// Keyboard Shortcuts
+function initShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // F1 - Fokus keranjang (scroll to top)
+    if (e.key === 'F1') {
+      e.preventDefault();
+      document.getElementById('keranjang-content')?.scrollTo(0, 0);
+    }
+    
+    // F2 - Fokus grid produk (scroll to top)
+    if (e.key === 'F2') {
+      e.preventDefault();
+      if (inputMode === 'produk') {
+        document.getElementById('produk-grid')?.scrollTo(0, 0);
+      }
+    }
+    
+    // F3 - Pelanggan (placeholder)
+    if (e.key === 'F3') {
+      e.preventDefault();
+      alert('Fitur pelanggan (belum diimplementasi)');
+    }
+    
+    // F4 - Fokus search produk
+    if (e.key === 'F4') {
+      e.preventDefault();
+      if (inputMode !== 'produk') window.switchMode('produk');
+      document.getElementById('input-search')?.focus();
+    }
+    
+    // F5 - Fokus barcode
+    if (e.key === 'F5') {
+      e.preventDefault();
+      if (inputMode !== 'barcode') window.switchMode('barcode');
+      document.getElementById('input-barcode')?.focus();
+    }
+    
+    // Ctrl+A - Tab Daftar Produk
+    if (e.ctrlKey && e.key === 'a') {
+      e.preventDefault();
+      window.switchMode('produk');
+    }
+    
+    // Ctrl+B - Tab Barcode
+    if (e.ctrlKey && e.key === 'b') {
+      e.preventDefault();
+      window.switchMode('barcode');
+    }
+    
+    // Ctrl+F - Cari (fokus ke input aktif)
+    if (e.ctrlKey && e.key === 'f') {
+      e.preventDefault();
+      if (inputMode === 'barcode') {
+        document.getElementById('input-barcode')?.focus();
+      } else {
+        document.getElementById('input-search')?.focus();
+      }
+    }
+    
+    // Ctrl+P - Cetak resi (placeholder - perlu last sale)
+    if (e.ctrlKey && e.key === 'p') {
+      e.preventDefault();
+      window.showRiwayatPenjualan();
+    }
+    
+    // Ctrl+Z - Bayar
+    if (e.ctrlKey && e.key === 'z') {
+      e.preventDefault();
+      window.selesaiBayar();
+    }
+  });
+}
 
 function formatRupiah(n) {
   return 'Rp ' + n.toLocaleString('id-ID');
