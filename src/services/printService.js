@@ -35,15 +35,24 @@ export async function cetakStruk(sale) {
 
 function cetakViaBrowser(doc, width) {
   const html = renderHTML(doc, width);
-  const win = window.open('', '_blank');
+  
+  // Buka popup window (bukan new tab)
+  const win = window.open('', 'PrintWindow', 'width=800,height=600,scrollbars=yes');
+  if (!win) {
+    alert('⚠️ Popup diblok. Izinkan popup untuk cetak.');
+    return;
+  }
+  
   win.document.write(html);
   win.document.close();
   
   // Auto print setelah load
   win.onload = () => {
     win.print();
-    // Close window setelah print dialog ditutup (opsional)
-    // win.onafterprint = () => win.close();
+    // Auto close setelah print dialog ditutup
+    win.onafterprint = () => {
+      setTimeout(() => win.close(), 500);
+    };
   };
 }
 
