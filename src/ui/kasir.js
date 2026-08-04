@@ -2,6 +2,7 @@
 import { cariByBarcode, cariByNama } from '../services/productService.js';
 import { simpanPenjualan } from '../services/saleService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
+import { cetakStruk } from '../services/printService.js';
 
 let keranjang = [];
 let shiftAktif = null;
@@ -289,16 +290,26 @@ window.bayarSekarang = async () => {
   }
 
   try {
-    await simpanPenjualan({
+    const saleData = {
       shiftId: shiftAktif.id,
       items: keranjang,
       diskonNota,
       pembayaran: pembayaranList,
       kasir: shiftAktif.kasir
-    });
+    };
+
+    await simpanPenjualan(saleData);
+
+    // Cetak struk (ambil sale terakhir — workaround sederhana, nanti bisa return dari simpanPenjualan)
+    const { listPenjualan } = await import('../services/saleService.js');
+    const sales = await listPenjualan({ shiftId: shiftAktif.id });
+    const lastSale = sales[0]; // terakhir = paling baru (sorted desc)
+
+    if (lastSale) {
+      await cetakStruk(lastSale);
+    }
 
     alert('Transaksi berhasil!');
-    // TODO: cetak struk (Tahap 2 lanjutan)
     resetKeranjang();
   } catch (err) {
     alert('Gagal: ' + err.message);
