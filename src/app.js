@@ -6,6 +6,7 @@ import { initProdukUI } from './ui/produk.js';
 import { initBarangMasukUI } from './ui/barang-masuk.js';
 import { initStokUI } from './ui/stok.js';
 import { initShiftUI } from './ui/shift.js';
+import { initKasUI } from './ui/kas.js';
 import { initPengaturanUI } from './ui/pengaturan.js';
 
 // Tab routing
@@ -36,6 +37,7 @@ function initTabs() {
       if (target === 'barang-masuk') initBarangMasukUI();
       if (target === 'stok') initStokUI();
       if (target === 'shift') initShiftUI();
+      if (target === 'kas') initKasUI();
       if (target === 'pengaturan') initPengaturanUI();
     });
   });
