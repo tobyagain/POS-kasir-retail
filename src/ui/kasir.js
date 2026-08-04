@@ -89,10 +89,13 @@ async function renderKasir() {
           <div style="margin-bottom:1rem;">
             <strong style="display:block; margin-bottom:0.5rem;">Bayar</strong>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:0.5rem;">
-              <button onclick="window.bayarCepat('tunai')" style="padding:16px; font-size:16px; font-weight:600; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">💵 TUNAI</button>
-              <button onclick="window.bayarCepat('qris')" style="padding:16px; font-size:16px; font-weight:600; background:#3b82f6; color:#fff; border:none; border-radius:6px; cursor:pointer;">📱 QRIS</button>
+              <button onclick="window.bayarTunai()" style="padding:16px; font-size:16px; font-weight:600; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">💵 TUNAI</button>
+              <button onclick="window.bayarQRIS()" style="padding:16px; font-size:16px; font-weight:600; background:#3b82f6; color:#fff; border:none; border-radius:6px; cursor:pointer;">📱 QRIS</button>
             </div>
             <div id="pembayaran-list"></div>
+            <div id="kembalian-info" style="margin-top:8px; padding:12px; background:#d1fae5; border-radius:6px; font-size:16px; font-weight:700; display:none;">
+              Kembalian: <span id="label-kembalian" style="color:#059669;">Rp 0</span>
+            </div>
           </div>
 
           <div class="flex gap-1">
@@ -210,7 +213,7 @@ function renderKeranjang() {
 
 let pembayaranList = [];
 
-window.bayarCepat = (metode) => {
+window.bayarTunai = () => {
   const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
   
   if (totalNetto <= 0) {
@@ -226,7 +229,38 @@ window.bayarCepat = (metode) => {
     return;
   }
 
-  pembayaranList.push({ metode, jumlah: sisa });
+  // Prompt nominal tunai (bisa lebih dari sisa = ada kembalian)
+  const nominalStr = prompt(`Sisa: ${formatRupiah(sisa)}\n\nBayar tunai (Rp):`, sisa);
+  if (!nominalStr) return;
+
+  const nominal = parseInt(nominalStr);
+  if (isNaN(nominal) || nominal <= 0) {
+    alert('Nominal tidak valid');
+    return;
+  }
+
+  pembayaranList.push({ metode: 'tunai', jumlah: nominal });
+  renderPembayaran();
+};
+
+window.bayarQRIS = () => {
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
+  
+  if (totalNetto <= 0) {
+    alert('Keranjang kosong atau total 0');
+    return;
+  }
+
+  const sudahBayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
+  const sisa = totalNetto - sudahBayar;
+
+  if (sisa <= 0) {
+    alert('Sudah lunas');
+    return;
+  }
+
+  // QRIS selalu pas (tidak ada kembalian)
+  pembayaranList.push({ metode: 'qris', jumlah: sisa });
   renderPembayaran();
 };
 
@@ -237,7 +271,12 @@ window.hapusPembayaran = (index) => {
 
 function renderPembayaran() {
   const container = document.getElementById('pembayaran-list');
+  const kembalianInfo = document.getElementById('kembalian-info');
   if (!container) return;
+
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
+  const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
+  const kembalian = Math.max(0, dibayar - totalNetto);
 
   if (pembayaranList.length > 0) {
     container.innerHTML = `
@@ -253,6 +292,14 @@ function renderPembayaran() {
     `;
   } else {
     container.innerHTML = '';
+  }
+
+  // Tampilkan kembalian jika ada
+  if (kembalian > 0) {
+    kembalianInfo.style.display = 'block';
+    document.getElementById('label-kembalian').textContent = formatRupiah(kembalian);
+  } else {
+    kembalianInfo.style.display = 'none';
   }
 
   hitungTotal();
