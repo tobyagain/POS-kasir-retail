@@ -366,7 +366,7 @@ window.bayarTunai = () => {
 };
 
 window.bayarQRIS = () => {
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/D/g, '') || 0);
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
   
   if (totalNetto <= 0) {
     alert('Keranjang kosong atau total 0');
