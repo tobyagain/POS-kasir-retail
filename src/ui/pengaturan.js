@@ -1,7 +1,8 @@
-// UI Pengaturan — identitas toko, printer, laci, backup
+// UI Pengaturan — identitas toko, printer, laci, backup, arsip
 import { getByKey, put } from '../data/db.js';
 import { pairBluetoothPrinter } from '../services/printService.js';
 import { exportDatabase, importDatabase } from '../services/reportService.js';
+import { autoArchiveOldData, restoreArchive } from '../services/archiveService.js';
 
 export async function initPengaturanUI() {
   await renderPengaturan();
@@ -64,6 +65,75 @@ window.importBackup = () => {
       setTimeout(() => location.reload(), 1000);
     } catch (err) {
       alert('❌ Gagal import: ' + err.message);
+    }
+  };
+  input.click();
+};
+
+// Arsip data lama (>1 tahun)
+window.archiveOldData = async () => {
+  const konfirm = confirm(
+    '📦 Arsipkan data transaksi >1 tahun?\n\n' +
+    '✅ Database aktif jadi lebih cepat\n' +
+    '✅ File arsip ter-download (simpan aman)\n' +
+    '⚠️ Data lama terhapus dari database aktif (bisa restore kapan saja)\n\n' +
+    'Lanjut?'
+  );
+  if (!konfirm) return;
+
+  try {
+    const counts = await autoArchiveOldData(12); // 12 bulan
+    alert(
+      `✅ Arsip berhasil!\n\n` +
+      `Dihapus dari database:\n` +
+      `- ${counts.sales} penjualan\n` +
+      `- ${counts.purchases} barang masuk\n` +
+      `- ${counts.shifts} shift\n` +
+      `- ${counts.cashflow} kas masuk/keluar\n` +
+      `- ${counts.stockMoves} mutasi stok\n\n` +
+      `File arsip sudah didownload. Simpan aman untuk audit nanti.`
+    );
+    // Refresh UI
+    setTimeout(() => location.reload(), 500);
+  } catch (err) {
+    alert('❌ Gagal arsip: ' + err.message);
+  }
+};
+
+// Restore arsip dari file
+window.restoreArchiveFile = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const konfirm = confirm(
+      '📂 Restore arsip ini?\n\n' +
+      '✅ Data dari arsip akan masuk kembali ke database\n' +
+      'ℹ️ Data existing tidak tertimpa (merge safe)\n\n' +
+      'Lanjut?'
+    );
+    if (!konfirm) return;
+
+    try {
+      const text = await file.text();
+      const archive = JSON.parse(text);
+      const result = await restoreArchive(archive);
+      alert(
+        `✅ Restore berhasil!\n\n` +
+        `Dikembalikan:\n` +
+        `- ${result.restored.sales} penjualan\n` +
+        `- ${result.restored.purchases} barang masuk\n` +
+        `- ${result.restored.shifts} shift\n` +
+        `- ${result.restored.cashflow} kas masuk/keluar\n` +
+        `- ${result.restored.stockMoves} mutasi stok\n\n` +
+        `Halaman akan refresh.`
+      );
+      setTimeout(() => location.reload(), 1000);
+    } catch (err) {
+      alert('❌ Gagal restore arsip: ' + err.message);
     }
   };
   input.click();
@@ -214,6 +284,34 @@ async function renderPengaturan() {
           </div>
           <div style="margin-top:1rem; padding:12px; background:#fff; border-radius:6px; font-size:12px; color:#64748b;">
             💡 <strong>Tips:</strong> Export backup secara berkala (misal: setiap akhir bulan) untuk keamanan data.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arsip Data Lama (NEW) -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="window.toggleAccordion('arsip')">
+        <h2>🗄️ Arsip Data Lama</h2>
+        <span class="accordion-arrow" id="arrow-arsip">▼</span>
+      </div>
+      <div class="accordion-content" id="content-arsip">
+        <div class="accordion-body" style="background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border:2px solid #3b82f6;">
+          <p style="color:#1e40af; font-size:13px; margin-bottom:1rem; line-height:1.5;">
+            <strong>Masalah:</strong> Data transaksi bertahun-tahun bikin query laporan lambat.<br>
+            <strong>Solusi:</strong> Arsipkan data >1 tahun (download JSON terpisah), hapus dari database aktif. Restore kapan butuh audit.
+          </p>
+          <div style="display:flex; gap:8px; margin-bottom:1rem;">
+            <button onclick="window.archiveOldData()" class="primary" style="flex:1; background:#f59e0b;">
+              📦 Arsip Data >1 Tahun
+            </button>
+            <button onclick="window.restoreArchiveFile()" class="secondary" style="flex:1;">
+              📂 Restore Arsip
+            </button>
+          </div>
+          <div style="padding:12px; background:#fff; border-radius:6px; font-size:12px; color:#64748b;">
+            ⚡ <strong>Performa:</strong> Arsip rutin (misal tiap 6-12 bulan) jaga database tetap cepat.<br>
+            💾 File arsip tersimpan terpisah, tidak hilang kalau clear browser data.
           </div>
         </div>
       </div>
