@@ -70,8 +70,8 @@ async function renderKasir() {
       }
     </style>
 
-    <div style="display:grid; grid-template-columns:460px 360px 1fr; gap:16px; height:calc(100vh - 120px); padding:0;">
-      <!-- KIRI: Keranjang & Produk Search -->
+    <div style="display:grid; grid-template-columns:380px 240px 1fr; gap:16px; height:calc(100vh - 120px); padding:0;">
+      <!-- KIRI: Keranjang (compact) -->
       <div style="display:flex; flex-direction:column; gap:1rem;">
         <!-- Search Produk (Barcode atau Nama) -->
         <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
@@ -261,15 +261,20 @@ function renderProdukGrid(searchQuery = '') {
     return;
   }
 
-  grid.innerHTML = filtered.slice(0, 30).map(p => `
-    <button onclick="window.tambahKeKeranjangById('${p.id}')" 
-            style="padding:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; text-align:left; transition:all 0.2s;"
-            onmouseover="this.style.background='#e0f2fe'; this.style.borderColor='#0284c7';"
-            onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';">
-      <div style="font-weight:600; font-size:13px; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#0f172a;">${p.nama}</div>
-      <div style="font-size:14px; font-weight:700; color:#0284c7;">${formatRupiah(p.hargaJual)}</div>
-      <div style="font-size:10px; color:#64748b; margin-top:2px;">Stok: ${p.stok}</div>
-    </button>
+  grid.innerHTML = filtered.slice(0, 50).map(p => `
+    <div onclick="window.tambahKeKeranjangById('${p.id}')" 
+         style="padding:12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.2s; margin-bottom:8px;"
+         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff';"
+         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff';">
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:4px;">
+        <div style="flex:1; font-weight:700; font-size:15px; color:#0f172a;">${p.nama}</div>
+        <div style="font-weight:700; font-size:16px; color:#0284c7; margin-left:12px;">${formatRupiah(p.hargaJual)}</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:11px; color:#64748b;">Stok: ${p.stok}</div>
+        ${p.barcode ? `<div style="font-size:11px; color:#94a3b8; font-family:monospace;">${p.barcode}</div>` : ''}
+      </div>
+    </div>
   `).join('');
 }
 
