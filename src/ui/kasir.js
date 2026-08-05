@@ -70,8 +70,8 @@ async function renderKasir() {
       }
     </style>
 
-    <div style="display:grid; grid-template-columns:1fr 400px 360px; gap:16px; height:calc(100vh - 120px); padding:0;">
-      <!-- KIRI: Input Produk (DIPERLEBAR) -->
+    <div style="display:grid; grid-template-columns:460px 360px 1fr; gap:16px; height:calc(100vh - 120px); padding:0;">
+      <!-- KIRI: Keranjang & Produk Search -->
       <div style="display:flex; flex-direction:column; gap:1rem;">
         <!-- Search Produk (Barcode atau Nama) -->
         <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
@@ -340,14 +340,14 @@ function renderKeranjang() {
               </td>
               <td style="padding:8px 4px; text-align:center;">
                 <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
-                  <button onclick="window.ubahQty(${i}, -1)" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">−</button>
+                  <button data-action="qty-minus" data-index="${i}" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">−</button>
                   <span style="font-weight:700; min-width:30px; text-align:center;">${it.qty}</span>
-                  <button onclick="window.ubahQty(${i}, 1)" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">+</button>
+                  <button data-action="qty-plus" data-index="${i}" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">+</button>
                 </div>
               </td>
               <td style="padding:8px 4px; text-align:right; font-weight:700; color:#0284c7;">${formatRupiah(it.subtotal)}</td>
               <td style="padding:8px 4px; text-align:center;">
-                <button onclick="window.hapusItem(${i})" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus">×</button>
+                <button data-action="hapus" data-index="${i}" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus">×</button>
               </td>
             </tr>
           `).join('')}
@@ -358,6 +358,23 @@ function renderKeranjang() {
 
   hitungTotal();
 }
+
+// Event delegation untuk keranjang (fix onclick tidak jalan di innerHTML dynamic)
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  
+  const action = btn.dataset.action;
+  const index = parseInt(btn.dataset.index);
+  
+  if (action === 'hapus') {
+    window.hapusItem(index);
+  } else if (action === 'qty-minus') {
+    window.ubahQty(index, -1);
+  } else if (action === 'qty-plus') {
+    window.ubahQty(index, 1);
+  }
+});
 
 let pembayaranList = [];
 
