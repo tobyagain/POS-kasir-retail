@@ -96,6 +96,6 @@ function previewStruk(doc, width) {
 
 // Helper: pair printer (dipanggil dari UI Pengaturan)
 export async function pairBluetoothPrinter() {
-  const { pairPrinter } = await import('./bluetooth.js');
+  const { pairPrinter } = await import('../print/bluetooth.js');
   return pairPrinter();
 }

@@ -92,18 +92,20 @@ Selesai bila:
 
 ---
 
-## Tahap 6 (Lanjut) — Android + ESC/POS + laci Bluetooth
+## Tahap 6 (Lanjut) — Android + ESC/POS + laci Bluetooth ✅
 **Tujuan:** routing ke HP/tablet tanpa membongkar apa pun.
 
 Bangun:
-- `print/renderESCPOS.js` — dokumen netral -> Uint8Array (58/80).
-- `print/drawer.js` — `ESC p 0 25 250`.
-- Web Bluetooth / RawBT untuk kirim byte; toggle `printMethod='escpos'`.
+- `print/renderESCPOS.js` — dokumen netral -> Uint8Array (58/80). ✅
+- `print/drawer.js` — `ESC p 0 25 250`. ✅
+- Web Bluetooth / RawBT untuk kirim byte; toggle `printMethod='escpos'`. ✅
 
 Selesai bila:
-- `buildReceipt` **tidak berubah** dari Tahap 2 (bukti netralitas builder).
-- Struk sama isinya di browser & ESC/POS.
-- Laci buka via perintah hanya di mode escpos; mode browser tetap lewat driver.
+- `buildReceipt` **tidak berubah** dari Tahap 2 (bukti netralitas builder). ✅
+- Struk sama isinya di browser & ESC/POS. ✅
+- Laci buka via perintah hanya di mode escpos; mode browser tetap lewat driver. ✅
+
+**Status:** Done secara kode. Belum ditest di hardware printer thermal nyata. Lihat `docs/ANDROID.md` untuk panduan pairing & troubleshooting.
 
 ---
 

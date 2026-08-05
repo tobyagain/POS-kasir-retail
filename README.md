@@ -1,30 +1,95 @@
 # POS Retail UMKM
 
-Aplikasi kasir (point of sale) untuk toko UMKM. Offline-first, satu device,
-tanpa backend. Data di IndexedDB. Fitur inti: penjualan, stok + HPP, shift kasir,
-kas & pengeluaran, laporan omzet/profit/laba bersih.
+Point of sale untuk toko retail UMKM. Offline-first, satu device kasir, tanpa backend.
+Data disimpan lokal di IndexedDB.
 
-> Proyek terpisah dari POS-offset (percetakan). Konsep tidak dibagi.
+Proyek ini **bukan** POS percetakan (itu repo terpisah: POS-offset / PrintCalc).
+Ini untuk retail umum: warung, toko kelontong, minimarket UMKM.
 
-## Baca dulu
-- **[CLAUDE.md](./CLAUDE.md)** — arsitektur, invarian (jangan dilanggar), aturan bisnis, konvensi. **Wajib** sebelum menyentuh kode.
-- **[docs/DATA-MODEL.md](./docs/DATA-MODEL.md)** — skema IndexedDB (7 store).
-- **[docs/ROADMAP.md](./docs/ROADMAP.md)** — urutan bangun per tahap + kriteria selesai.
-- **[docs/KEPUTUSAN.md](./docs/KEPUTUSAN.md)** — log keputusan desain & pertanyaan terbuka.
+---
 
-## Status
-Tahap 0 — scaffold + spek. Inti berhitung (`src/core/hpp.js`, `src/core/shift.js`)
-sudah diimplementasi & tertes. UI dan service belum dibangun (lihat ROADMAP Tahap 1).
+## Stack
 
-## Jalankan test
-```
+- **Vanilla JS** (ES modules), tanpa framework
+- **IndexedDB** untuk data transaksi, stok, shift
+- **Tanpa dependency runtime** (no CDN, no npm bundle di v1)
+- **Modular** per domain (bukan single-file)
+
+---
+
+## Fitur
+
+### ✅ Core (Tahap 1-5 — DONE)
+- **Produk & stok** — master produk, barcode, kategori
+- **Barang masuk** — update stok + HPP rata-rata bergerak
+- **Kasir** — scan barcode, keranjang, bayar campur (tunai/QRIS/transfer/kartu), cetak struk
+- **Shift** — buka/tutup shift, modal awal, kas sistem vs fisik, selisih
+- **Kas** — pencatatan kas masuk/keluar non-penjualan
+- **Laporan** — omzet, laba kotor/bersih, produk terlaris, stok menipis, riwayat shift
+- **Pengaturan** — identitas toko, printer (toggle & lebar 58/80mm), laci kas, backup/restore DB
+
+### ✅ Android + Bluetooth (Tahap 6 — DONE secara kode)
+- **ESC/POS renderer** — cetak struk via printer thermal Bluetooth
+- **Laci kas** — buka otomatis via perintah ESC/POS
+- **Web Bluetooth** — pairing & kirim byte langsung ke printer
+- **Status:** Kode complete, belum ditest di hardware printer nyata. Lihat **[docs/ANDROID.md](docs/ANDROID.md)** untuk panduan setup.
+
+---
+
+## Cara Pakai
+
+### Windows / Desktop
+1. Clone repo ini.
+2. Buka `index.html` di browser (Chrome/Edge recommended).
+3. Tidak perlu build step. Langsung jalan.
+4. Cetak struk via `window.print()` (driver browser).
+
+### Android / Tablet
+1. Host aplikasi di server HTTPS (atau localhost via tunnel).
+2. Buka di Chrome/Edge Android.
+3. Tab **Pengaturan** → **Pair Printer Bluetooth** → pilih printer thermal.
+4. Set **Metode Cetak** = `Bluetooth ESC/POS`.
+5. Lihat **[docs/ANDROID.md](docs/ANDROID.md)** untuk troubleshooting.
+
+**⚠️ Backup berkala via tab Pengaturan.** Data lokal di IndexedDB browser.
+
+---
+
+## Dokumentasi
+
+- **[CLAUDE.md](CLAUDE.md)** — panduan untuk agen AI yang membangun/memelihara proyek ini
+- **[docs/DATA-MODEL.md](docs/DATA-MODEL.md)** — struktur IndexedDB
+- **[docs/ROADMAP.md](docs/ROADMAP.md)** — tahapan pengembangan
+- **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — log keputusan desain
+- **[docs/ANDROID.md](docs/ANDROID.md)** — panduan printer thermal Bluetooth (Tahap 6)
+
+---
+
+## Test
+
+```bash
 npm test
 ```
-Runner: Node built-in `node:test` (butuh Node 18+). Tanpa dependency.
 
-## Prinsip singkat
-- Uang = integer rupiah, jangan float.
-- Laporan baca **snapshot** HPP/harga di transaksi, bukan master produk.
-- Stok berubah hanya lewat mutasi (`stockMoves`).
-- Printer & laci kas = toggle di Pengaturan, bukan asumsi.
-- 1 builder struk, banyak renderer (HTML sekarang, ESC/POS nanti).
+16 test untuk logika core (HPP, shift, laporan). Semua harus hijau sebelum commit.
+
+---
+
+## Invarian Kritis
+
+Aturan bisnis yang **tidak boleh dilanggar** (lihat `CLAUDE.md` untuk detail):
+
+1. **HPP snapshot ke item penjualan** — laporan profit pakai snapshot, bukan HPP master yang berubah-ubah.
+2. **Harga jual juga snapshot** — ubah harga produk besok tidak mengubah struk kemarin.
+3. **HPP rata-rata bergerak** — rumus khusus, termasuk kasus stok ≤ 0.
+4. **Kas shift = tunai only** — QRIS/transfer masuk omzet tapi bukan laci.
+5. **Setiap penjualan terikat shift** — tidak boleh jual tanpa shift terbuka.
+6. **Stok via mutasi** — semua perubahan stok tercatat di `stockMoves`, tidak pernah diubah diam-diam.
+7. **Void = kembalikan efek, jangan hapus** — record tetap ada untuk audit.
+8. **Nomor dokumen counter atomik** — tidak ada nomor kembar/bolong.
+
+---
+
+## Lisensi
+
+MIT (atau sesuaikan)
