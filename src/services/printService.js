@@ -49,10 +49,30 @@ function cetakViaBrowser(doc, width) {
   // Auto print setelah load
   win.onload = () => {
     win.print();
-    // Auto close setelah print dialog ditutup
+    
+    // Auto close: 3 fallback strategy
+    // 1. onafterprint (Chrome/Edge/Firefox modern)
     win.onafterprint = () => {
       setTimeout(() => win.close(), 500);
     };
+    
+    // 2. Fallback: matchMedia untuk browser lama
+    if (win.matchMedia) {
+      const mediaQueryList = win.matchMedia('print');
+      mediaQueryList.addListener((mql) => {
+        if (!mql.matches) {
+          setTimeout(() => win.close(), 500);
+        }
+      });
+    }
+    
+    // 3. Fallback terakhir: timeout panjang (user manual close OK)
+    setTimeout(() => {
+      if (!win.closed) {
+        // Jangan paksa close kalau user masih butuh window
+        // win.close(); // disabled: let user close manually if needed
+      }
+    }, 10000);
   };
 }
 

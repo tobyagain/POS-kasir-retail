@@ -459,12 +459,17 @@ window.selesaiBayar = async () => {
 window.resetKeranjang = () => {
   keranjang = [];
   pembayaranList = [];
-  document.getElementById('input-diskon-nota').value = '0';
+  const diskonInput = document.getElementById('input-diskon-nota');
+  if (diskonInput) diskonInput.value = '0';
   if (inputMode === 'barcode') {
-    document.getElementById('input-barcode').value = '';
-    document.getElementById('input-barcode').focus();
+    const barcodeInput = document.getElementById('input-barcode');
+    if (barcodeInput) {
+      barcodeInput.value = '';
+      barcodeInput.focus();
+    }
   } else {
-    document.getElementById('input-search').value = '';
+    const searchInput = document.getElementById('input-search');
+    if (searchInput) searchInput.value = '';
     renderProdukGrid();
   }
   renderKeranjang();
