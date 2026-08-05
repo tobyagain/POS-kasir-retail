@@ -530,7 +530,14 @@ function initShortcuts() {
     
     // T - Fokus input tunai
     if (e.key === 't' || e.key === 'T') {
-      if (document.activeElement.tagName !== 'INPUT') {
+      const activeEl = document.activeElement;
+      const isInputSearch = activeEl?.id === 'input-search-produk';
+      // Hanya trigger kalau TIDAK sedang ketik di input tunai/diskon
+      if (activeEl?.id !== 'input-tunai' && activeEl?.id !== 'input-diskon-nota') {
+        // Kalau sedang di search produk, izinkan ketik T normal kecuali sedang kosong
+        if (isInputSearch && activeEl.value.length > 0) {
+          return; // biarkan T diketik normal
+        }
         e.preventDefault();
         document.getElementById('input-tunai')?.focus();
       }
@@ -538,7 +545,14 @@ function initShortcuts() {
     
     // Q - Bayar QRIS (pas)
     if (e.key === 'q' || e.key === 'Q') {
-      if (document.activeElement.tagName !== 'INPUT') {
+      const activeEl = document.activeElement;
+      const isInputSearch = activeEl?.id === 'input-search-produk';
+      // Hanya trigger kalau TIDAK sedang ketik di input tunai/diskon
+      if (activeEl?.id !== 'input-tunai' && activeEl?.id !== 'input-diskon-nota') {
+        // Kalau sedang di search produk, izinkan ketik Q normal kecuali sedang kosong
+        if (isInputSearch && activeEl.value.length > 0) {
+          return; // biarkan Q diketik normal
+        }
         e.preventDefault();
         window.bayarQRIS();
       }
