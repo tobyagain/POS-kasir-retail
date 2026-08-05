@@ -133,14 +133,14 @@ async function renderKasir() {
         <h3 style="margin:0 0 1rem 0; color:#0f172a;">PEMBAYARAN</h3>
 
         <!-- Input Tunai -->
-        <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:8px;">
+        <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:12px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <span style="font-size:18px;">💵</span>
-            <strong style="flex:1;">TUNAI</strong>
+            <span style="font-size:16px;">💵</span>
+            <strong style="flex:1; font-size:13px;">TUNAI</strong>
           </div>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
-            <button onclick="window.bayarTunai()" class="primary" style="padding:12px 20px; background:#10b981; white-space:nowrap; font-size:14px; font-weight:700;">+ Tunai</button>
+            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:15px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
+            <button onclick="window.bayarTunai()" style="padding:10px 14px; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; font-size:13px; font-weight:700;">Tunai</button>
           </div>
         </div>
 
@@ -366,7 +366,7 @@ window.bayarTunai = () => {
 };
 
 window.bayarQRIS = () => {
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/D/g, '') || 0);
   
   if (totalNetto <= 0) {
     alert('Keranjang kosong atau total 0');
@@ -395,7 +395,7 @@ function renderPembayaran() {
   const kembalianInfo = document.getElementById('kembalian-info');
   if (!container) return;
 
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/D/g, '') || 0);
   const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
   const kembalian = Math.max(0, dibayar - totalNetto);
 
@@ -427,7 +427,7 @@ function renderPembayaran() {
 
 function hitungTotal() {
   const subtotal = keranjang.reduce((sum, it) => sum + it.subtotal, 0);
-  const diskonNota = parseInt(document.getElementById('input-diskon-nota')?.value || 0);
+  const diskonNota = parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
   const total = subtotal - diskonNota;
 
   document.getElementById('label-total').textContent = formatRupiah(total);
@@ -444,7 +444,7 @@ window.selesaiBayar = async () => {
     return;
   }
 
-  const diskonNota = parseInt(document.getElementById('input-diskon-nota').value || 0);
+  const diskonNota = parseInt(document.getElementById('input-diskon-nota').value.replace(/\D/g, '') || 0);
   const total = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - diskonNota;
   const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
 
