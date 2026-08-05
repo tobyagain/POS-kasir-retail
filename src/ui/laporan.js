@@ -12,7 +12,7 @@ async function renderLaporan() {
 
     <!-- Laporan Omzet & Profit -->
     <div class="card" style="margin-bottom:1.5rem;">
-      <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit</h3>
+      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit</h3>
       <form id="form-rentang" style="display:flex; gap:8px; align-items:flex-end;">
         <div style="flex:1;">
           <label>Dari Tanggal</label>
@@ -31,19 +31,19 @@ async function renderLaporan() {
     <!-- 2 Kolom: Stok Menipis + Produk Terlaris -->
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">⚠️ Stok Menipis</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">⚠️ Stok Menipis</h3>
         <div id="stok-menipis-content"></div>
       </div>
 
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">🏆 Produk Terlaris</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">🏆 Produk Terlaris</h3>
         <div id="produk-terlaris-content"></div>
       </div>
     </div>
 
     <!-- Riwayat Shift -->
     <div class="card">
-      <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📅 Riwayat Shift</h3>
+      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📅 Riwayat Shift</h3>
       <div id="riwayat-shift-content"></div>
     </div>
   `;
@@ -81,10 +81,10 @@ async function loadLaporanOmzet(dari, sampai) {
 
     hasil.innerHTML = `
       <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-top:1rem;">
-        <div style="background:#dbeafe; border:2px solid #3b82f6; border-radius:8px; padding:1rem;">
+        <div style="background:#dbeafe; border:2px solid #0284c7; border-radius:8px; padding:1rem;">
           <div style="font-size:12px; color:#1e40af; margin-bottom:4px;">OMZET</div>
           <div style="font-size:24px; font-weight:700; color:#1e3a8a;">${formatRupiah(laporan.omzet)}</div>
-          <div style="font-size:11px; color:#3b82f6; margin-top:4px;">${laporan.totalTransaksi} transaksi</div>
+          <div style="font-size:11px; color:#0284c7; margin-top:4px;">${laporan.totalTransaksi} transaksi</div>
         </div>
 
         <div style="background:#d1fae5; border:2px solid #10b981; border-radius:8px; padding:1rem;">

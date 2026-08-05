@@ -296,7 +296,7 @@ async function renderPengaturan() {
         <span class="accordion-arrow" id="arrow-arsip">▼</span>
       </div>
       <div class="accordion-content" id="content-arsip">
-        <div class="accordion-body" style="background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border:2px solid #3b82f6;">
+        <div class="accordion-body" style="background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border:2px solid #0284c7;">
           <p style="color:#1e40af; font-size:13px; margin-bottom:1rem; line-height:1.5;">
             <strong>Masalah:</strong> Data transaksi bertahun-tahun bikin query laporan lambat.<br>
             <strong>Solusi:</strong> Arsipkan data >1 tahun (download JSON terpisah), hapus dari database aktif. Restore kapan butuh audit.

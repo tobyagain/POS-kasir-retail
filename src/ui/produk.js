@@ -12,11 +12,13 @@ async function renderList() {
   
   const container = document.querySelector('[data-panel="produk"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Daftar Produk (${produkList.length})</h2>
       <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk</button>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     ${produkList.length === 0 ? `
       <div class="card" style="text-align:center; padding:3rem; color:#64748b;">
         <div style="font-size:48px; margin-bottom:1rem;">📦</div>
@@ -60,17 +62,21 @@ async function renderList() {
         </tbody>
       </table>
     `}
+    </div>
+    </div>
   `;
 }
 
 window.showFormTambahProduk = () => {
   const container = document.querySelector('[data-panel="produk"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
       <button class="secondary" onclick="window.initProdukUI()">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Tambah Produk Baru</h2>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     <div class="card" style="max-width:600px;">
       <form id="form-produk">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
@@ -112,7 +118,7 @@ window.showFormTambahProduk = () => {
         </div>
 
         <div style="margin-top:1.5rem; padding:1rem; background:#f0f9ff; border:2px solid #bae6fd; border-radius:6px;">
-          <div style="font-size:12px; color:#0369a1; margin-bottom:4px;">ℹ️ <strong>Catatan HPP & Stok</strong></div>
+          <div style="font-size:12px; color:#0284c7; margin-bottom:4px;">ℹ️ <strong>Catatan HPP & Stok</strong></div>
           <p style="font-size:12px; color:#64748b; margin:0; line-height:1.5;">
             HPP (Harga Pokok Penjualan) dan Stok akan otomatis terisi saat input <strong>Barang Masuk</strong> di tab Barang Masuk. 
             Tidak perlu diisi manual.

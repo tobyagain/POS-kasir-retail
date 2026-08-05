@@ -44,7 +44,7 @@ async function renderKasir() {
       .shortcut-hint { 
         display: inline-block; 
         background: #e0f2fe; 
-        color: #0369a1; 
+        color: #0284c7; 
         padding: 2px 6px; 
         border-radius: 3px; 
         font-size: 11px; 
@@ -59,7 +59,7 @@ async function renderKasir() {
         padding: 10px 20px; 
         border: none; 
         background: #e0f2fe; 
-        color: #0369a1; 
+        color: #0284c7; 
         font-weight: 600; 
         cursor: pointer; 
         border-radius: 6px 6px 0 0;

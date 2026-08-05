@@ -18,6 +18,8 @@ async function renderFormBuka() {
 
   const container = document.querySelector('[data-panel="shift"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
+    <div style="flex:1; overflow-y:auto;">
     <div class="card" style="max-width:500px; margin:0 auto;">
       <h2 style="color:#0284c7; margin-bottom:1.5rem;">Buka Shift Baru</h2>
       <form id="form-buka-shift">
@@ -34,7 +36,7 @@ async function renderFormBuka() {
     </div>
 
     ${riwayat.length > 0 ? `
-      <h3 class="mt-2" style="color:#0369a1;">Riwayat Shift</h3>
+      <h3 class="mt-2" style="color:#0284c7;">Riwayat Shift</h3>
       <table>
         <thead>
           <tr>
@@ -58,6 +60,8 @@ async function renderFormBuka() {
         </tbody>
       </table>
     ` : ''}
+    </div>
+    </div>
   `;
 
   document.getElementById('form-buka-shift').onsubmit = async (e) => {
@@ -101,9 +105,10 @@ async function renderShiftAktif(shift) {
 
   const container = document.querySelector('[data-panel="shift"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
       <!-- Header Info -->
-      <div class="card" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; border:none;">
+      <div class="card" style="background:linear-gradient(135deg, #0284c7 0%, #0284c7 100%); color:#fff; border:none;">
         <div style="font-size:14px; opacity:0.9; margin-bottom:4px;">SHIFT AKTIF</div>
         <div style="font-size:24px; font-weight:700; margin-bottom:8px;">${shift.kasir}</div>
         <div style="font-size:13px; opacity:0.9;">Buka: ${formatWaktu(shift.buka)}</div>
@@ -124,11 +129,12 @@ async function renderShiftAktif(shift) {
       </div>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     <!-- Rincian Detail -->
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
       <!-- Penjualan -->
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">💰 Penjualan</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💰 Penjualan</h3>
         <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e2e8f0;">
           <span style="color:#64748b;">Transaksi Valid</span>
           <span style="font-weight:600;">${totalTransaksi}</span>
@@ -149,7 +155,7 @@ async function renderShiftAktif(shift) {
 
       <!-- Kas -->
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">💵 Kas</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💵 Kas</h3>
         <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e2e8f0;">
           <span style="color:#64748b;">Modal Awal</span>
           <span style="font-weight:600;">${formatRupiah(shift.modalAwal)}</span>
@@ -163,7 +169,7 @@ async function renderShiftAktif(shift) {
           <span style="font-weight:600; color:#dc2626;">-${formatRupiah(kasKeluar)}</span>
         </div>
         <div style="display:flex; justify-content:space-between; padding:8px 0; background:#f0f9ff; margin:-8px; padding:12px; border-radius:6px; margin-top:8px;">
-          <span style="font-weight:600; color:#0369a1;">Kas Sistem</span>
+          <span style="font-weight:600; color:#0284c7;">Kas Sistem</span>
           <span style="font-weight:700; font-size:18px; color:#0284c7;">${formatRupiah(kasSistem)}</span>
         </div>
       </div>
@@ -172,7 +178,7 @@ async function renderShiftAktif(shift) {
     <!-- Transaksi Terakhir -->
     ${salesValid.length > 0 ? `
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📋 5 Transaksi Terakhir</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📋 5 Transaksi Terakhir</h3>
         <table>
           <thead>
             <tr>
@@ -217,6 +223,8 @@ async function renderShiftAktif(shift) {
         </div>
         <button type="submit" class="primary" style="padding:14px 32px; background:#dc2626;">Tutup Shift</button>
       </form>
+    </div>
+    </div>
     </div>
   `;
 

@@ -12,6 +12,7 @@ async function renderMain() {
 
   const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📊 Kelola Stok</h2>
       <button class="primary" onclick="window.showOpnameStok()">Opname Stok</button>
@@ -23,7 +24,7 @@ async function renderMain() {
           <span style="font-size:24px;">⚠️</span>
           <strong style="color:#dc2626; font-size:16px;">Stok Menipis (${menipis.length} produk)</strong>
         </div>
-        <ul style="margin:0; padding-left:1.5rem; color:#991b1b;">
+        <ul style="margin:0; padding-left:1.5rem; color:#dc2626;">
           ${menipis.map(p => `
             <li style="margin:4px 0;">
               <strong>${p.nama}</strong>: ${p.stok} ${p.satuan} (min: ${p.stokMin})
@@ -33,8 +34,9 @@ async function renderMain() {
       </div>
     ` : ''}
 
+    <div style="flex:1; overflow-y:auto;">
     <div class="card">
-      <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📦 Semua Produk</h3>
+      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📦 Semua Produk</h3>
       <table>
         <thead>
           <tr>
@@ -64,6 +66,8 @@ async function renderMain() {
         </tbody>
       </table>
     </div>
+    </div>
+    </div>
   `;
 }
 
@@ -72,11 +76,13 @@ window.showOpnameStok = async () => {
 
   const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
       <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Opname Stok</h2>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     <div class="card" style="max-width:800px;">
       <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:6px; padding:1rem; margin-bottom:1.5rem;">
         <div style="font-weight:600; color:#92400e; margin-bottom:4px;">ℹ️ Tentang Opname Stok</div>
@@ -114,6 +120,8 @@ window.showOpnameStok = async () => {
           `).join('')}
         </tbody>
       </table>
+    </div>
+    </div>
     </div>
   `;
 
@@ -166,11 +174,13 @@ window.lihatMutasi = async (produkId, namaProduk) => {
 
   const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
       <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Riwayat Mutasi: ${namaProduk}</h2>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     ${mutasi.length === 0 ? `
       <div class="card" style="text-align:center; padding:3rem; color:#64748b;">
         <div style="font-size:48px; margin-bottom:1rem;">📋</div>
@@ -209,6 +219,8 @@ window.lihatMutasi = async (produkId, namaProduk) => {
         </table>
       </div>
     `}
+    </div>
+    </div>
   `;
 };
 

@@ -67,7 +67,7 @@ window.showFormBarangMasuk = async () => {
     <div style="display:grid; grid-template-columns:1fr 400px; gap:1.5rem;">
       <!-- Kiri: Form Header + Add Item -->
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📋 Info Pembelian</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📋 Info Pembelian</h3>
         <div class="mb-1">
           <label>Supplier <span class="text-red">*</span></label>
           <input type="text" id="input-supplier" required placeholder="Nama supplier">
@@ -79,7 +79,7 @@ window.showFormBarangMasuk = async () => {
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e2e8f0;">
 
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">➕ Tambah Item</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">➕ Tambah Item</h3>
         <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; margin-bottom:1rem;">
           <div>
             <label>Produk <span class="text-red">*</span></label>
@@ -103,7 +103,7 @@ window.showFormBarangMasuk = async () => {
       <!-- Kanan: Cart Items + Total -->
       <div>
         <div class="card" style="margin-bottom:1rem;">
-          <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📦 Item List</h3>
+          <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📦 Item List</h3>
           <div id="cart-content"></div>
         </div>
 

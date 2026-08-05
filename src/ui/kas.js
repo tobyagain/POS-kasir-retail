@@ -19,7 +19,7 @@ function renderGuardShift() {
     <div class="card" style="max-width:500px; margin:2rem auto; text-align:center; padding:2rem; background:#fef2f2; border:2px solid #fca5a5;">
       <div style="font-size:48px; margin-bottom:1rem;">⚠️</div>
       <h2 style="color:#dc2626; margin-bottom:0.5rem;">Tidak Ada Shift Terbuka</h2>
-      <p style="color:#991b1b; margin-bottom:1rem;">Buka shift dulu di tab <strong>Shift</strong>.</p>
+      <p style="color:#dc2626; margin-bottom:1rem;">Buka shift dulu di tab <strong>Shift</strong>.</p>
       <button class="primary" onclick="window.goToShift()">Ke Tab Shift</button>
     </div>
   `;
@@ -36,26 +36,28 @@ async function renderKas(shift) {
 
   const container = document.querySelector('[data-panel="kas"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
-      <div class="card" style="background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border:2px solid #3b82f6;">
+      <div class="card" style="background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border:2px solid #0284c7;">
         <div style="font-size:12px; color:#1e40af; margin-bottom:4px;">SHIFT AKTIF</div>
         <div style="font-size:18px; font-weight:700; color:#1e3a8a;">${shift.kasir}</div>
-        <div style="font-size:11px; color:#3b82f6; margin-top:4px;">Modal: ${formatRupiah(shift.modalAwal)}</div>
+        <div style="font-size:11px; color:#0284c7; margin-top:4px;">Modal: ${formatRupiah(shift.modalAwal)}</div>
       </div>
       <div class="card" style="background:#d1fae5; border:2px solid #10b981;">
         <div style="font-size:12px; color:#047857; margin-bottom:4px;">💰 KAS MASUK</div>
         <div style="font-size:24px; font-weight:700; color:#047857;">${formatRupiah(masuk)}</div>
       </div>
       <div class="card" style="background:#fee2e2; border:2px solid #dc2626;">
-        <div style="font-size:12px; color:#991b1b; margin-bottom:4px;">💸 KAS KELUAR</div>
-        <div style="font-size:24px; font-weight:700; color:#991b1b;">${formatRupiah(keluar)}</div>
+        <div style="font-size:12px; color:#dc2626; margin-bottom:4px;">💸 KAS KELUAR</div>
+        <div style="font-size:24px; font-weight:700; color:#dc2626;">${formatRupiah(keluar)}</div>
       </div>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     <div style="display:grid; grid-template-columns:400px 1fr; gap:1.5rem;">
       <!-- Kiri: Form Catat -->
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📝 Catat Kas Masuk/Keluar</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📝 Catat Kas Masuk/Keluar</h3>
         <form id="form-cashflow">
           <div class="mb-1">
             <label>Jenis <span class="text-red">*</span></label>
@@ -91,7 +93,7 @@ async function renderKas(shift) {
 
       <!-- Kanan: Riwayat -->
       <div class="card">
-        <h3 style="color:#0369a1; font-size:16px; margin-bottom:1rem;">📋 Riwayat Cashflow Shift Ini</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📋 Riwayat Cashflow Shift Ini</h3>
         ${cashflows.length === 0 ? `
           <div style="text-align:center; padding:3rem; color:#94a3b8;">
             <div style="font-size:48px; margin-bottom:1rem;">💵</div>
@@ -103,7 +105,7 @@ async function renderKas(shift) {
               <div style="border:2px solid ${c.jenis === 'masuk' ? '#d1fae5' : '#fee2e2'}; border-radius:8px; padding:12px; margin-bottom:10px; background:${c.jenis === 'masuk' ? '#ecfdf5' : '#fef2f2'};">
                 <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
                   <div style="flex:1;">
-                    <div style="font-weight:700; font-size:14px; color:${c.jenis === 'masuk' ? '#047857' : '#991b1b'};">
+                    <div style="font-weight:700; font-size:14px; color:${c.jenis === 'masuk' ? '#047857' : '#dc2626'};">
                       ${c.jenis === 'masuk' ? '💰 Masuk' : '💸 Keluar'} - ${c.kategori}
                     </div>
                     <div style="font-size:12px; color:#64748b; margin-top:2px;">${formatWaktu(c.tanggal)}</div>
@@ -119,6 +121,8 @@ async function renderKas(shift) {
           </div>
         `}
       </div>
+    </div>
+    </div>
     </div>
   `;
 
