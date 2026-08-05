@@ -71,41 +71,8 @@ async function renderKasir() {
     </style>
 
     <div style="display:grid; grid-template-columns:380px 240px 1fr; gap:16px; height:calc(100vh - 120px); padding:0;">
-      <!-- KIRI: Keranjang (compact) -->
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        <!-- Search Produk (Barcode atau Nama) -->
-        <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
-          <div style="padding:1rem; background:#0284c7;">
-            <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">🔍 CARI PRODUK</div>
-            <div style="font-size:11px; color:#bfdbfe;">Scan barcode atau ketik nama</div>
-          </div>
-
-          <div style="padding:1rem;">
-            <input 
-              type="text" 
-              id="input-search-produk" 
-              placeholder="Scan / Ketik nama produk..." 
-              style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;" 
-              autofocus>
-            <div style="font-size:11px; color:#64748b; margin-top:6px;">
-              <span class="shortcut-hint">F5</span> fokus input
-            </div>
-          </div>
-        </div>
-
-        <!-- Grid Produk -->
-        <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-          <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
-          <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
-        </div>
-
-        <!-- Info Shift -->
-        <div style="background:#0284c7; color:#fff; padding:12px; border-radius:8px; font-size:12px;">
-          <strong>Shift:</strong> ${shiftAktif.kasir}
-        </div>
-      </div>
-
-      <!-- TENGAH: Keranjang (Fokus Utama) -->
+      
+      <!-- KOLOM 1: KERANJANG (380px) -->
       <div style="background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
           <h2 style="margin:0; color:#0f172a;">DAFTAR ITEM</h2>
@@ -128,7 +95,7 @@ async function renderKasir() {
         </div>
       </div>
 
-      <!-- KANAN: Panel Bayar (COMPACT) -->
+      <!-- KOLOM 2: PAYMENT (240px COMPACT) -->
       <div style="background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
         <h3 style="margin:0 0 10px 0; color:#0f172a; font-size:14px;">PEMBAYARAN</h3>
 
@@ -169,6 +136,41 @@ async function renderKasir() {
           Reset
         </button>
       </div>
+
+      <!-- KOLOM 3: PRODUK (1fr LEBAR) -->
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <!-- Search Produk (Barcode atau Nama) -->
+        <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+          <div style="padding:1rem; background:#0284c7;">
+            <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">🔍 CARI PRODUK</div>
+            <div style="font-size:11px; color:#bfdbfe;">Scan barcode atau ketik nama</div>
+          </div>
+
+          <div style="padding:1rem;">
+            <input 
+              type="text" 
+              id="input-search-produk" 
+              placeholder="Scan / Ketik nama produk..." 
+              style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;" 
+              autofocus>
+            <div style="font-size:11px; color:#64748b; margin-top:6px;">
+              <span class="shortcut-hint">F5</span> fokus input
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid Produk -->
+        <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+          <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
+          <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
+        </div>
+
+        <!-- Info Shift -->
+        <div style="background:#0284c7; color:#fff; padding:12px; border-radius:8px; font-size:12px;">
+          <strong>Shift:</strong> ${shiftAktif.kasir}
+        </div>
+      </div>
+      
     </div>
   `;
 
