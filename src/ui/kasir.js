@@ -319,6 +319,8 @@ window.ubahQty = (index, delta) => {
 };
 
 window.hapusItem = (index) => {
+  // Guard: hanya jalan kalau ada keranjang kasir
+  if (!keranjang) return;
   keranjang.splice(index, 1);
   renderKeranjang();
 };
