@@ -263,16 +263,16 @@ function renderProdukGrid(searchQuery = '') {
 
   grid.innerHTML = filtered.slice(0, 50).map(p => `
     <div onclick="window.tambahKeKeranjangById('${p.id}')" 
-         style="padding:12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.2s; margin-bottom:8px;"
-         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff';"
-         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff';">
-      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:4px;">
-        <div style="flex:1; font-weight:700; font-size:15px; color:#0f172a;">${p.nama}</div>
-        <div style="font-weight:700; font-size:16px; color:#0284c7; margin-left:12px;">${formatRupiah(p.hargaJual)}</div>
+         style="padding:16px; border:2px solid #e2e8f0; border-radius:8px; cursor:pointer; background:#fff; transition:all 0.2s; margin-bottom:10px;"
+         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(4px)';"
+         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff'; this.style.transform='translateX(0)';">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="flex:1; font-weight:700; font-size:16px; color:#0f172a; line-height:1.3;">${p.nama}</div>
+        <div style="font-weight:700; font-size:18px; color:#0284c7; margin-left:16px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-size:11px; color:#64748b;">Stok: ${p.stok}</div>
-        ${p.barcode ? `<div style="font-size:11px; color:#94a3b8; font-family:monospace;">${p.barcode}</div>` : ''}
+        <div style="font-size:12px; color:#64748b; font-weight:500;">Stok: <span style="font-weight:700; color:${p.stok > 10 ? '#059669' : p.stok > 0 ? '#f59e0b' : '#dc2626'}">${p.stok}</span></div>
+        ${p.barcode ? `<div style="font-size:11px; color:#94a3b8; font-family:monospace; background:#f1f5f9; padding:2px 6px; border-radius:3px;">${p.barcode}</div>` : ''}
       </div>
     </div>
   `).join('');
