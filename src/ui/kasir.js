@@ -268,16 +268,16 @@ function renderProdukGrid(searchQuery = '') {
 
   grid.innerHTML = filtered.slice(0, 50).map(p => `
     <div onclick="window.tambahKeKeranjangById('${p.id}')" 
-         style="padding:16px; border:2px solid #e2e8f0; border-radius:8px; cursor:pointer; background:#fff; transition:all 0.2s; margin-bottom:10px;"
-         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(4px)';"
+         style="padding:10px 12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.15s; margin-bottom:6px;"
+         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(3px)';"
          onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff'; this.style.transform='translateX(0)';">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div style="flex:1; font-weight:700; font-size:16px; color:#0f172a; line-height:1.3;">${p.nama}</div>
-        <div style="font-weight:700; font-size:18px; color:#0284c7; margin-left:16px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div style="flex:1; font-weight:700; font-size:14px; color:#0f172a; line-height:1.2;">${p.nama}</div>
+        <div style="font-weight:700; font-size:16px; color:#0284c7; margin-left:12px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-size:12px; color:#64748b; font-weight:500;">Stok: <span style="font-weight:700; color:${p.stok > 10 ? '#059669' : p.stok > 0 ? '#f59e0b' : '#dc2626'}">${p.stok}</span></div>
-        ${p.barcode ? `<div style="font-size:11px; color:#94a3b8; font-family:monospace; background:#f1f5f9; padding:2px 6px; border-radius:3px;">${p.barcode}</div>` : ''}
+        <div style="font-size:11px; color:#64748b;">Stok: <span style="font-weight:700; color:${p.stok > 10 ? '#059669' : p.stok > 0 ? '#f59e0b' : '#dc2626'}">${p.stok}</span></div>
+        ${p.barcode ? `<div style="font-size:10px; color:#94a3b8; font-family:monospace; background:#f8fafc; padding:2px 5px; border-radius:3px;">${p.barcode}</div>` : ''}
       </div>
     </div>
   `).join('');
@@ -369,22 +369,25 @@ function renderKeranjang() {
   hitungTotal();
 }
 
-// Event delegation untuk keranjang (fix onclick tidak jalan di innerHTML dynamic)
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  
-  const action = btn.dataset.action;
-  const index = parseInt(btn.dataset.index);
-  
-  if (action === 'hapus') {
-    window.hapusItem(index);
-  } else if (action === 'qty-minus') {
-    window.ubahQty(index, -1);
-  } else if (action === 'qty-plus') {
-    window.ubahQty(index, 1);
-  }
-});
+// Event delegation untuk keranjang (scoped ke kasir panel only)
+const kasirPanel = document.querySelector('[data-panel="kasir"]');
+if (kasirPanel) {
+  kasirPanel.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    
+    const action = btn.dataset.action;
+    const index = parseInt(btn.dataset.index);
+    
+    if (action === 'hapus') {
+      window.hapusItem(index);
+    } else if (action === 'qty-minus') {
+      window.ubahQty(index, -1);
+    } else if (action === 'qty-plus') {
+      window.ubahQty(index, 1);
+    }
+  });
+}
 
 let pembayaranList = [];
 
