@@ -137,7 +137,7 @@ async function renderKasir() {
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <span style="font-size:16px;">💵</span>
             <strong style="flex:1; font-size:13px;">TUNAI</strong>
-            <span class="shortcut-hint">T</span>
+            <span class="shortcut-hint">Alt+T</span>
           </div>
           <div style="display:flex; gap:8px;">
             <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:15px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
@@ -149,7 +149,7 @@ async function renderKasir() {
         <button onclick="window.bayarQRIS()" style="width:100%; padding:16px; font-size:16px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
           <span style="font-size:20px;">📱</span>
           <span>QRIS (Bayar Pas)</span>
-          <span class="shortcut-hint" style="background:#fff; color:#0284c7; margin-left:8px;">Q</span>
+          <span class="shortcut-hint" style="background:#fff; color:#0284c7; margin-left:8px;">Alt+Q</span>
         </button>
 
         <!-- List Pembayaran -->
@@ -528,34 +528,16 @@ function initShortcuts() {
       window.selesaiBayar();
     }
     
-    // T - Fokus input tunai
-    if (e.key === 't' || e.key === 'T') {
-      const activeEl = document.activeElement;
-      const isInputSearch = activeEl?.id === 'input-search-produk';
-      // Hanya trigger kalau TIDAK sedang ketik di input tunai/diskon
-      if (activeEl?.id !== 'input-tunai' && activeEl?.id !== 'input-diskon-nota') {
-        // Kalau sedang di search produk, izinkan ketik T normal kecuali sedang kosong
-        if (isInputSearch && activeEl.value.length > 0) {
-          return; // biarkan T diketik normal
-        }
-        e.preventDefault();
-        document.getElementById('input-tunai')?.focus();
-      }
+    // Alt+T - Fokus input tunai (tidak ganggu ketik produk)
+    if (e.altKey && (e.key === 't' || e.key === 'T')) {
+      e.preventDefault();
+      document.getElementById('input-tunai')?.focus();
     }
     
-    // Q - Bayar QRIS (pas)
-    if (e.key === 'q' || e.key === 'Q') {
-      const activeEl = document.activeElement;
-      const isInputSearch = activeEl?.id === 'input-search-produk';
-      // Hanya trigger kalau TIDAK sedang ketik di input tunai/diskon
-      if (activeEl?.id !== 'input-tunai' && activeEl?.id !== 'input-diskon-nota') {
-        // Kalau sedang di search produk, izinkan ketik Q normal kecuali sedang kosong
-        if (isInputSearch && activeEl.value.length > 0) {
-          return; // biarkan Q diketik normal
-        }
-        e.preventDefault();
-        window.bayarQRIS();
-      }
+    // Alt+Q - Bayar QRIS pas (tidak ganggu ketik produk)
+    if (e.altKey && (e.key === 'q' || e.key === 'Q')) {
+      e.preventDefault();
+      window.bayarQRIS();
     }
   });
 }
