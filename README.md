@@ -38,6 +38,23 @@ Ini untuk retail umum: warung, toko kelontong, minimarket UMKM.
 
 ## Cara Pakai
 
+### Offline (Recommended)
+
+**PWA (Progressive Web App):**
+1. Jalankan local server sekali: `python -m http.server 8000`
+2. Buka `http://localhost:8000` di Chrome/Edge
+3. Klik ⊕ icon di address bar → **Install**
+4. Tutup server. App sudah ter-cache offline.
+5. Buka dari Start Menu / Desktop seperti native app.
+
+**Atau langsung buka HTML:**
+- Double-click `index.html` atau drag ke Chrome.
+- RAM ~100-150 MB (ringan, bukan Electron).
+
+Lihat **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** untuk detail offline deployment & auto-launch.
+
+---
+
 ### Windows / Desktop
 1. Clone repo ini.
 2. Buka `index.html` di browser (Chrome/Edge recommended).
@@ -58,6 +75,7 @@ Ini untuk retail umum: warung, toko kelontong, minimarket UMKM.
 ## Dokumentasi
 
 - **[CLAUDE.md](CLAUDE.md)** — panduan untuk agen AI yang membangun/memelihara proyek ini
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — cara install offline (PWA, HTML langsung, Electron, APK)
 - **[docs/DATA-MODEL.md](docs/DATA-MODEL.md)** — struktur IndexedDB
 - **[docs/ROADMAP.md](docs/ROADMAP.md)** — tahapan pengembangan
 - **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — log keputusan desain

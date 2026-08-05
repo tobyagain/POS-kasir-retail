@@ -1,0 +1,22 @@
+{
+  "name": "POS Retail UMKM",
+  "short_name": "POS Kasir",
+  "description": "Point of sale offline untuk toko UMKM",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#dbeafe",
+  "theme_color": "#0284c7",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
