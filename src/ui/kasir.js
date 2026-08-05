@@ -128,44 +128,44 @@ async function renderKasir() {
         </div>
       </div>
 
-      <!-- KANAN: Panel Bayar -->
-      <div style="background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
-        <h3 style="margin:0 0 1rem 0; color:#0f172a;">PEMBAYARAN</h3>
+      <!-- KANAN: Panel Bayar (COMPACT) -->
+      <div style="background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
+        <h3 style="margin:0 0 10px 0; color:#0f172a; font-size:14px;">PEMBAYARAN</h3>
 
-        <!-- Input Tunai -->
-        <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:8px; padding:12px; margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <span style="font-size:16px;">💵</span>
-            <strong style="flex:1; font-size:13px;">TUNAI</strong>
-            <span class="shortcut-hint">Alt+T</span>
+        <!-- Input Tunai (COMPACT) -->
+        <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:6px; padding:8px; margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+            <span style="font-size:14px;">💵</span>
+            <strong style="flex:1; font-size:12px;">TUNAI</strong>
+            <span class="shortcut-hint" style="font-size:10px; padding:2px 4px;">Alt+T</span>
           </div>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:15px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
-            <button onclick="window.bayarTunai()" style="padding:10px 14px; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; font-size:13px; font-weight:700;">Tunai</button>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:8px; font-size:14px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:4px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
+            <button onclick="window.bayarTunai()" style="padding:8px 10px; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:700;">OK</button>
           </div>
         </div>
 
-        <!-- Tombol QRIS -->
-        <button onclick="window.bayarQRIS()" style="width:100%; padding:16px; font-size:16px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
-          <span style="font-size:20px;">📱</span>
-          <span>QRIS (Bayar Pas)</span>
-          <span class="shortcut-hint" style="background:#fff; color:#0284c7; margin-left:8px;">Alt+Q</span>
+        <!-- Tombol QRIS (COMPACT) -->
+        <button onclick="window.bayarQRIS()" style="width:100%; padding:10px; font-size:13px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:8px;">
+          <span style="font-size:16px;">📱</span>
+          <span>QRIS</span>
+          <span class="shortcut-hint" style="background:#fff; color:#0284c7; font-size:10px; padding:2px 4px;">Alt+Q</span>
         </button>
 
         <!-- List Pembayaran -->
-        <div id="pembayaran-list" style="margin-bottom:12px;"></div>
+        <div id="pembayaran-list" style="margin-bottom:8px;"></div>
 
         <!-- Kembalian -->
-        <div id="kembalian-info" style="padding:12px; background:#d1fae5; border-radius:6px; font-size:16px; font-weight:700; margin-bottom:12px; display:none;">
+        <div id="kembalian-info" style="padding:8px; background:#d1fae5; border-radius:4px; font-size:13px; font-weight:700; margin-bottom:8px; display:none;">
           Kembalian: <span id="label-kembalian" style="color:#047857;">Rp 0</span>
         </div>
 
-        <!-- Tombol Bayar -->
-        <button onclick="window.selesaiBayar()" style="width:100%; padding:18px; font-size:20px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:8px; cursor:pointer; margin-top:auto;">
-          BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857;">Ctrl+Z</span>
+        <!-- Tombol Bayar (COMPACT) -->
+        <button onclick="window.selesaiBayar()" style="width:100%; padding:14px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:auto;">
+          BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857; font-size:10px; padding:2px 4px;">Ctrl+Z</span>
         </button>
 
-        <button onclick="window.resetKeranjang()" style="width:100%; padding:12px; margin-top:8px; font-size:14px; background:#f1f5f9; color:#64748b; border:none; border-radius:6px; cursor:pointer;">
+        <button onclick="window.resetKeranjang()" style="width:100%; padding:8px; margin-top:6px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
           Reset
         </button>
       </div>
