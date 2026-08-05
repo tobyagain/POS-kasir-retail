@@ -395,7 +395,7 @@ function renderPembayaran() {
   const kembalianInfo = document.getElementById('kembalian-info');
   if (!container) return;
 
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/D/g, '') || 0);
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
   const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
   const kembalian = Math.max(0, dibayar - totalNetto);
 
