@@ -46,33 +46,46 @@ function cetakViaBrowser(doc, width) {
   win.document.write(html);
   win.document.close();
   
-  // Auto print setelah load
+  // Auto print + close
   win.onload = () => {
+    // Trigger print
     win.print();
     
-    // Auto close: 3 fallback strategy
-    // 1. onafterprint (Chrome/Edge/Firefox modern)
+    // Strategy 1: onafterprint (Chrome/Edge/Firefox modern)
+    let closed = false;
     win.onafterprint = () => {
-      setTimeout(() => win.close(), 500);
+      if (!closed) {
+        closed = true;
+        setTimeout(() => win.close(), 100);
+      }
     };
     
-    // 2. Fallback: matchMedia untuk browser lama
+    // Strategy 2: matchMedia listener (fallback)
     if (win.matchMedia) {
       const mediaQueryList = win.matchMedia('print');
-      mediaQueryList.addListener((mql) => {
-        if (!mql.matches) {
-          setTimeout(() => win.close(), 500);
+      const handler = (mql) => {
+        if (!mql.matches && !closed) {
+          closed = true;
+          setTimeout(() => win.close(), 100);
         }
-      });
+      };
+      
+      // Modern API
+      if (mediaQueryList.addEventListener) {
+        mediaQueryList.addEventListener('change', handler);
+      } else {
+        // Legacy API
+        mediaQueryList.addListener(handler);
+      }
     }
     
-    // 3. Fallback terakhir: timeout panjang (user manual close OK)
+    // Strategy 3: Force close after 2 seconds (aggressive fallback)
+    // User sudah klik Print/Cancel di dialog, 2s cukup
     setTimeout(() => {
-      if (!win.closed) {
-        // Jangan paksa close kalau user masih butuh window
-        // win.close(); // disabled: let user close manually if needed
+      if (!closed && !win.closed) {
+        win.close();
       }
-    }, 10000);
+    }, 2000);
   };
 }
 
