@@ -118,7 +118,7 @@ async function renderKasir() {
 
         <div style="border-top:2px solid #e2e8f0; padding-top:1rem; margin-top:1rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-size:14px; color:#64748b; font-weight:600;">Diskon Nota</span>
+            <span style="font-size:14px; color:#64748b; font-weight:600;">Diskon</span>
             <input type="text" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px; font-size:14px;">
           </div>
           <div style="display:flex; justify-content:space-between; align-items:baseline; padding:12px 0; border-top:1px solid #e2e8f0;">
@@ -137,6 +137,7 @@ async function renderKasir() {
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <span style="font-size:16px;">💵</span>
             <strong style="flex:1; font-size:13px;">TUNAI</strong>
+            <span class="shortcut-hint">T</span>
           </div>
           <div style="display:flex; gap:8px;">
             <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:15px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
@@ -148,6 +149,7 @@ async function renderKasir() {
         <button onclick="window.bayarQRIS()" style="width:100%; padding:16px; font-size:16px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
           <span style="font-size:20px;">📱</span>
           <span>QRIS (Bayar Pas)</span>
+          <span class="shortcut-hint" style="background:#fff; color:#0284c7; margin-left:8px;">Q</span>
         </button>
 
         <!-- List Pembayaran -->
@@ -524,6 +526,22 @@ function initShortcuts() {
     if (e.ctrlKey && e.key === 'z') {
       e.preventDefault();
       window.selesaiBayar();
+    }
+    
+    // T - Fokus input tunai
+    if (e.key === 't' || e.key === 'T') {
+      if (document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        document.getElementById('input-tunai')?.focus();
+      }
+    }
+    
+    // Q - Bayar QRIS (pas)
+    if (e.key === 'q' || e.key === 'Q') {
+      if (document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        window.bayarQRIS();
+      }
     }
   });
 }
