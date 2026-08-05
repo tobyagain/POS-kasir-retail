@@ -318,25 +318,42 @@ function renderKeranjang() {
   if (!container) return;
 
   if (keranjang.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:3rem; color:#94a3b8;">Keranjang kosong<br>Scan barcode atau pilih produk</div>';
+    container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Keranjang kosong</div>';
   } else {
-    container.innerHTML = keranjang.map((it, i) => `
-      <div style="border:2px solid #e2e8f0; border-radius:6px; padding:12px; margin-bottom:8px; background:#fafafa;">
-        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="font-weight:700; font-size:15px; color:#0f172a; margin-bottom:4px;">${it.nama}</div>
-            <div style="font-size:13px; color:#64748b;">${formatRupiah(it.hargaJualSnapshot)} × ${it.qty}</div>
-          </div>
-          <div style="font-weight:700; font-size:16px; color:#0284c7;">${formatRupiah(it.subtotal)}</div>
-        </div>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <button onclick="window.ubahQty(${i}, -1)" style="padding:6px 12px; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700;">−</button>
-          <span style="font-weight:700; min-width:40px; text-align:center; font-size:16px;">${it.qty}</span>
-          <button onclick="window.ubahQty(${i}, 1)" style="padding:6px 12px; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700;">+</button>
-          <button onclick="window.hapusItem(${i})" style="padding:6px 12px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; margin-left:auto;">Hapus</button>
-        </div>
-      </div>
-    `).join('');
+    // Table header + rows
+    container.innerHTML = `
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="border-bottom:2px solid #e2e8f0; text-align:left;">
+            <th style="padding:8px 4px; color:#64748b; font-weight:600;">Item</th>
+            <th style="padding:8px 4px; color:#64748b; font-weight:600; text-align:center; width:80px;">Qty</th>
+            <th style="padding:8px 4px; color:#64748b; font-weight:600; text-align:right; width:100px;">Jumlah</th>
+            <th style="padding:8px 4px; width:60px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${keranjang.map((it, i) => `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:8px 4px;">
+                <div style="font-weight:600; color:#0f172a; margin-bottom:2px;">${it.nama}</div>
+                <div style="color:#64748b; font-size:11px;">${formatRupiah(it.hargaJualSnapshot)}</div>
+              </td>
+              <td style="padding:8px 4px; text-align:center;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                  <button onclick="window.ubahQty(${i}, -1)" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">−</button>
+                  <span style="font-weight:700; min-width:30px; text-align:center;">${it.qty}</span>
+                  <button onclick="window.ubahQty(${i}, 1)" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">+</button>
+                </div>
+              </td>
+              <td style="padding:8px 4px; text-align:right; font-weight:700; color:#0284c7;">${formatRupiah(it.subtotal)}</td>
+              <td style="padding:8px 4px; text-align:center;">
+                <button onclick="window.hapusItem(${i})" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus">×</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
   }
 
   hitungTotal();
