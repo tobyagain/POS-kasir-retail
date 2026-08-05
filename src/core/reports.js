@@ -1,6 +1,5 @@
 // core/reports.js — agregasi laporan. FUNGSI MURNI. Baca hppSnapshot/hargaSnapshot
 // dari transaksi (INV-1/2), TIDAK dari master produk. Exclude void.
-// STUB TAHAP 5: tanda tangan fungsi sudah final; isi lengkap dibangun di Tahap 5.
 
 /** Omzet per metode bayar dari daftar sale (exclude void). */
 export function omzetPerMetode(sales) {
@@ -12,15 +11,31 @@ export function omzetPerMetode(sales) {
   return out;
 }
 
-/** Laba kotor = SUM((hargaJualSnapshot - hppSnapshot)*qty) - diskon. Exclude void. */
+/** 
+ * Laba kotor = SUM((hargaJualSnapshot - hppSnapshot)*qty - diskonItem) - diskonNota.
+ * diskonNota didistribusi proporsional ke setiap item berdasarkan subtotal.
+ * Exclude void.
+ */
 export function labaKotor(sales) {
   let laba = 0;
   for (const s of sales) {
     if (s.void) continue;
+    
+    // Hitung total bruto untuk distribusi proporsional diskon nota
+    const totalBruto = s.items.reduce((sum, it) => sum + it.subtotal, 0);
+    const diskonNota = s.diskonNota || 0;
+    
     for (const it of s.items || []) {
-      laba += (it.hargaJualSnapshot - it.hppSnapshot) * it.qty - (it.diskonItem || 0);
+      // Laba item sebelum diskon nota
+      const labaItem = (it.hargaJualSnapshot - it.hppSnapshot) * it.qty - (it.diskonItem || 0);
+      
+      // Alokasi diskon nota proporsional berdasarkan subtotal item
+      const alokDiskonNota = totalBruto > 0 
+        ? Math.round(diskonNota * (it.subtotal / totalBruto))
+        : 0;
+      
+      laba += labaItem - alokDiskonNota;
     }
-    laba -= (s.diskonNota || 0);
   }
   return laba;
 }

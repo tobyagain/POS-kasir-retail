@@ -4,10 +4,10 @@ import { labaKotor, labaBersih, stokMenipis } from '../src/core/reports.js';
 
 const sales = [
   { void:false, diskonNota:0, items:[
-    { qty:2, hargaJualSnapshot:3500, hppSnapshot:2800, diskonItem:0 }, // laba 1400
+    { qty:2, hargaJualSnapshot:3500, hppSnapshot:2800, diskonItem:0, subtotal:7000 }, // laba 1400
   ], pembayaran:[{metode:'tunai',jumlah:7000}] },
   { void:true, diskonNota:0, items:[
-    { qty:5, hargaJualSnapshot:9999, hppSnapshot:0, diskonItem:0 },     // void, diabaikan
+    { qty:5, hargaJualSnapshot:9999, hppSnapshot:0, diskonItem:0, subtotal:49995 },     // void, diabaikan
   ], pembayaran:[] },
 ];
 
@@ -15,9 +15,9 @@ test('laba kotor pakai snapshot & exclude void', () => {
   assert.equal(labaKotor(sales), 1400);
 });
 
-test('laba kotor: diskon item & nota mengurangi', () => {
+test('laba kotor: diskon item & nota mengurangi (proporsional)', () => {
   const s = [{ void:false, diskonNota:500, items:[
-    { qty:1, hargaJualSnapshot:5000, hppSnapshot:3000, diskonItem:200 }, // 2000-200=1800
+    { qty:1, hargaJualSnapshot:5000, hppSnapshot:3000, diskonItem:200, subtotal:5000 }, // laba item 1800, alok diskon nota 500
   ]}];
   assert.equal(labaKotor(s), 1300); // 1800 - 500
 });
