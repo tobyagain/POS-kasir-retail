@@ -158,7 +158,7 @@ window.tambahItem = () => {
   renderCart();
 };
 
-window.hapusItem = (index) => {
+window.hapusItemBarangMasuk = (index) => {
   itemsCart.splice(index, 1);
   renderCart();
 };
@@ -179,7 +179,7 @@ function renderCart() {
           </div>
           <div style="font-weight:700; color:#10b981;">${formatRupiah(it.subtotal)}</div>
         </div>
-        <button onclick="window.hapusItem(${i})" style="padding:4px 10px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Hapus</button>
+        <button onclick="window.hapusItemBarangMasuk(${i})" style="padding:4px 10px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Hapus</button>
       </div>
     `).join('');
   }

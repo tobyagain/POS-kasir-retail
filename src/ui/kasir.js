@@ -318,8 +318,7 @@ window.ubahQty = (index, delta) => {
   renderKeranjang();
 };
 
-window.hapusItem = (index) => {
-  // Guard: hanya jalan kalau ada keranjang kasir
+window.hapusItemKasir = (index) => {
   if (!keranjang) return;
   keranjang.splice(index, 1);
   renderKeranjang();
@@ -382,7 +381,7 @@ if (kasirPanel) {
     const index = parseInt(btn.dataset.index);
     
     if (action === 'hapus') {
-      window.hapusItem(index);
+      window.hapusItemKasir(index);
     } else if (action === 'qty-minus') {
       window.ubahQty(index, -1);
     } else if (action === 'qty-plus') {
