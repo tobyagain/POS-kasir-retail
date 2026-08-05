@@ -70,7 +70,7 @@ async function renderKasir() {
       }
     </style>
 
-    <div style="display:grid; grid-template-columns:300px 1fr 340px; gap:1rem; height:calc(100vh - 120px);">
+    <div style="display:grid; grid-template-columns:300px 1fr 360px; gap:16px; height:calc(100vh - 120px); padding:0;">
       <!-- KIRI: Input Produk -->
       <div style="display:flex; flex-direction:column; gap:1rem;">
         <!-- Search Produk (Barcode atau Nama) -->
@@ -117,13 +117,13 @@ async function renderKasir() {
         <div id="keranjang-content" style="flex:1; overflow-y:auto;"></div>
 
         <div style="border-top:2px solid #e2e8f0; padding-top:1rem; margin-top:1rem;">
-          <div class="flex" style="justify-content:space-between; margin-bottom:8px;">
-            <span style="font-size:14px; color:#64748b;">Diskon Nota</span>
-            <input type="text" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px;" min="0">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:14px; color:#64748b; font-weight:600;">Diskon Nota</span>
+            <input type="text" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px; font-size:14px;">
           </div>
-          <div class="flex" style="justify-content:space-between; font-size:28px; font-weight:700; color:#0f172a;">
-            <span>TOTAL</span>
-            <span id="label-total" style="color:#0284c7;">Rp 0</span>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; padding:12px 0; border-top:1px solid #e2e8f0;">
+            <span style="font-size:24px; font-weight:700; color:#64748b;">TOTAL</span>
+            <span id="label-total" style="font-size:32px; font-weight:700; color:#0284c7;">Rp 0</span>
           </div>
         </div>
       </div>
@@ -138,9 +138,9 @@ async function renderKasir() {
             <span style="font-size:18px;">💵</span>
             <strong style="flex:1;">TUNAI</strong>
           </div>
-          <div style="display:flex; gap:8px; margin-bottom:1rem;">
-            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
-            <button onclick="window.bayarTunai()" class="primary" style="padding:12px 24px; background:#10b981; white-space:nowrap;">💵 Tunai</button>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
+            <button onclick="window.bayarTunai()" class="primary" style="padding:12px 20px; background:#10b981; white-space:nowrap; font-size:14px; font-weight:700;">+ Tunai</button>
           </div>
         </div>
 
