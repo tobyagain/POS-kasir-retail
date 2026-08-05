@@ -70,8 +70,8 @@ async function renderKasir() {
       }
     </style>
 
-    <div style="display:grid; grid-template-columns:300px 1fr 360px; gap:16px; height:calc(100vh - 120px); padding:0;">
-      <!-- KIRI: Input Produk -->
+    <div style="display:grid; grid-template-columns:1fr 400px 360px; gap:16px; height:calc(100vh - 120px); padding:0;">
+      <!-- KIRI: Input Produk (DIPERLEBAR) -->
       <div style="display:flex; flex-direction:column; gap:1rem;">
         <!-- Search Produk (Barcode atau Nama) -->
         <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
