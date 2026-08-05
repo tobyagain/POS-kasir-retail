@@ -119,7 +119,7 @@ async function renderKasir() {
         <div style="border-top:2px solid #e2e8f0; padding-top:1rem; margin-top:1rem;">
           <div class="flex" style="justify-content:space-between; margin-bottom:8px;">
             <span style="font-size:14px; color:#64748b;">Diskon Nota</span>
-            <input type="number" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px;" min="0">
+            <input type="text" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px;" min="0">
           </div>
           <div class="flex" style="justify-content:space-between; font-size:28px; font-weight:700; color:#0f172a;">
             <span>TOTAL</span>
@@ -138,9 +138,9 @@ async function renderKasir() {
             <span style="font-size:18px;">💵</span>
             <strong style="flex:1;">TUNAI</strong>
           </div>
-          <div style="display:flex; gap:8px;">
-            <input type="number" id="input-tunai" placeholder="0" min="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
-            <button onclick="window.bayarTunai()" style="padding:12px 20px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">+</button>
+          <div style="display:flex; gap:8px; margin-bottom:1rem;">
+            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:12px; font-size:16px; font-weight:600; border:2px solid #10b981; border-radius:6px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
+            <button onclick="window.bayarTunai()" class="primary" style="padding:12px 24px; background:#10b981; white-space:nowrap;">💵 Tunai</button>
           </div>
         </div>
 
@@ -172,6 +172,29 @@ async function renderKasir() {
 
   renderModeContent();
   renderKeranjang();
+
+  // Format thousand separator untuk input angka
+  const formatInputNumber = (input) => {
+    input.addEventListener('input', (e) => {
+      let val = e.target.value.replace(/\D/g, ''); // hapus non-digit
+      if (val === '') val = '0';
+      e.target.value = parseInt(val).toLocaleString('id-ID');
+    });
+    input.addEventListener('focus', (e) => {
+      // Hapus separator saat focus untuk kemudahan edit
+      let val = e.target.value.replace(/\D/g, '');
+      e.target.value = val === '0' ? '' : val;
+    });
+    input.addEventListener('blur', (e) => {
+      // Tambah separator lagi saat blur
+      let val = e.target.value.replace(/\D/g, '');
+      if (val === '') val = '0';
+      e.target.value = parseInt(val).toLocaleString('id-ID');
+    });
+  };
+
+  formatInputNumber(document.getElementById('input-diskon-nota'));
+  formatInputNumber(document.getElementById('input-tunai'));
 
   document.getElementById('input-diskon-nota').addEventListener('input', hitungTotal);
 }
@@ -321,7 +344,7 @@ let pembayaranList = [];
 
 window.bayarTunai = () => {
   const inputTunai = document.getElementById('input-tunai');
-  const nominal = parseInt(inputTunai.value);
+  const nominal = parseInt(inputTunai.value.replace(/\D/g, '')); // parse dari formatted string
 
   if (isNaN(nominal) || nominal <= 0) {
     alert('Isi nominal tunai');
@@ -329,7 +352,7 @@ window.bayarTunai = () => {
     return;
   }
 
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value || 0);
+  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
   
   if (totalNetto <= 0) {
     alert('Keranjang kosong atau total 0');
@@ -337,7 +360,7 @@ window.bayarTunai = () => {
   }
 
   pembayaranList.push({ metode: 'tunai', jumlah: nominal });
-  inputTunai.value = '';
+  inputTunai.value = '0';
   inputTunai.focus();
   renderPembayaran();
 };
@@ -449,7 +472,7 @@ window.selesaiBayar = async () => {
       await cetakStruk(lastSale);
     }
 
-    alert('Transaksi berhasil!');
+    // Hapus alert "Transaksi berhasil" — struk sudah bukti
     resetKeranjang();
   } catch (err) {
     alert('Gagal: ' + err.message);
