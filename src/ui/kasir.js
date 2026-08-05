@@ -70,83 +70,18 @@ async function renderKasir() {
       }
     </style>
 
-    <div style="display:grid; grid-template-columns:380px 240px 1fr; gap:16px; height:calc(100vh - 120px); padding:0;">
+    <div style="display:grid; grid-template-columns:1fr 420px; gap:16px; height:calc(100vh - 120px); padding:0;">
       
-      <!-- KOLOM 1: KERANJANG (380px) -->
-      <div style="background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
-          <h2 style="margin:0; color:#0f172a;">DAFTAR ITEM</h2>
-          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:8px 16px;">
-            Riwayat <span class="shortcut-hint">Ctrl+P</span>
-          </button>
-        </div>
-
-        <div id="keranjang-content" style="flex:1; overflow-y:auto;"></div>
-
-        <div style="border-top:2px solid #e2e8f0; padding-top:1rem; margin-top:1rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-size:14px; color:#64748b; font-weight:600;">Diskon</span>
-            <input type="text" id="input-diskon-nota" value="0" style="width:140px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px; font-size:14px;">
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:baseline; padding:12px 0; border-top:1px solid #e2e8f0;">
-            <span style="font-size:24px; font-weight:700; color:#64748b;">TOTAL</span>
-            <span id="label-total" style="font-size:32px; font-weight:700; color:#0284c7;">Rp 0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- KOLOM 2: PAYMENT (240px COMPACT) -->
-      <div style="background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column;">
-        <h3 style="margin:0 0 10px 0; color:#0f172a; font-size:14px;">PEMBAYARAN</h3>
-
-        <!-- Input Tunai (COMPACT) -->
-        <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:6px; padding:8px; margin-bottom:8px;">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-            <span style="font-size:14px;">💵</span>
-            <strong style="flex:1; font-size:12px;">TUNAI</strong>
-            <span class="shortcut-hint" style="font-size:10px; padding:2px 4px;">Alt+T</span>
-          </div>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:8px; font-size:14px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:4px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
-            <button onclick="window.bayarTunai()" style="padding:8px 10px; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:700;">OK</button>
-          </div>
-        </div>
-
-        <!-- Tombol QRIS (COMPACT) -->
-        <button onclick="window.bayarQRIS()" style="width:100%; padding:10px; font-size:13px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:8px;">
-          <span style="font-size:16px;">📱</span>
-          <span>QRIS</span>
-          <span class="shortcut-hint" style="background:#fff; color:#0284c7; font-size:10px; padding:2px 4px;">Alt+Q</span>
-        </button>
-
-        <!-- List Pembayaran -->
-        <div id="pembayaran-list" style="margin-bottom:8px;"></div>
-
-        <!-- Kembalian -->
-        <div id="kembalian-info" style="padding:8px; background:#d1fae5; border-radius:4px; font-size:13px; font-weight:700; margin-bottom:8px; display:none;">
-          Kembalian: <span id="label-kembalian" style="color:#047857;">Rp 0</span>
-        </div>
-
-        <!-- Tombol Bayar (COMPACT) -->
-        <button onclick="window.selesaiBayar()" style="width:100%; padding:14px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:auto;">
-          BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857; font-size:10px; padding:2px 4px;">Ctrl+Z</span>
-        </button>
-
-        <button onclick="window.resetKeranjang()" style="width:100%; padding:8px; margin-top:6px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
-          Reset
-        </button>
-      </div>
-
-      <!-- KOLOM 3: PRODUK (1fr LEBAR) -->
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        <!-- Search Produk (Barcode atau Nama) -->
+      <!-- KIRI: PRODUK (LEBAR 60-70%) -->
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <!-- Search Produk -->
         <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
-          <div style="padding:1rem; background:#0284c7;">
+          <div style="padding:12px; background:#0284c7;">
             <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">🔍 CARI PRODUK</div>
             <div style="font-size:11px; color:#bfdbfe;">Scan barcode atau ketik nama</div>
           </div>
 
-          <div style="padding:1rem;">
+          <div style="padding:12px;">
             <input 
               type="text" 
               id="input-search-produk" 
@@ -159,16 +94,84 @@ async function renderKasir() {
           </div>
         </div>
 
-        <!-- Grid Produk -->
-        <div id="produk-panel" style="background:#fff; padding:1rem; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <!-- Grid Produk (FULL HEIGHT) -->
+        <div id="produk-panel" style="background:#fff; padding:12px; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
           <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
           <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
         </div>
 
-        <!-- Info Shift -->
-        <div style="background:#0284c7; color:#fff; padding:12px; border-radius:8px; font-size:12px;">
-          <strong>Shift:</strong> ${shiftAktif.kasir}
+        <!-- Info Shift (bottom) -->
+        <div style="background:#0284c7; color:#fff; padding:10px 12px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span><strong>Shift:</strong> ${shiftAktif.kasir}</span>
+          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:6px 12px; background:#fff; color:#0284c7; border:none; border-radius:4px; font-size:11px; cursor:pointer;">
+            Riwayat <span style="font-size:10px; background:#0284c7; color:#fff; padding:2px 4px; border-radius:3px; margin-left:4px;">Ctrl+P</span>
+          </button>
         </div>
+      </div>
+
+      <!-- KANAN: KERANJANG + PAYMENT STACK (420px) -->
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        
+        <!-- KERANJANG (flex:1 ambil space tersisa) -->
+        <div style="background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column; flex:1; min-height:0;">
+          <h2 style="margin:0 0 12px 0; padding-bottom:12px; border-bottom:2px solid #e2e8f0; color:#0f172a; font-size:16px;">DAFTAR ITEM</h2>
+
+          <div id="keranjang-content" style="flex:1; overflow-y:auto; margin-bottom:12px;"></div>
+
+          <div style="border-top:2px solid #e2e8f0; padding-top:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span style="font-size:13px; color:#64748b; font-weight:600;">Diskon</span>
+              <input type="text" id="input-diskon-nota" value="0" style="width:130px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px; font-size:14px;">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid #e2e8f0;">
+              <span style="font-size:20px; font-weight:700; color:#64748b;">TOTAL</span>
+              <span id="label-total" style="font-size:28px; font-weight:700; color:#0284c7;">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAYMENT (fixed height, compact) -->
+        <div style="background:#fff; padding:14px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+          <h3 style="margin:0 0 10px 0; color:#0f172a; font-size:14px; font-weight:700;">PEMBAYARAN</h3>
+
+          <!-- Input Tunai -->
+          <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:6px; padding:10px; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+              <span style="font-size:14px;">💵</span>
+              <strong style="flex:1; font-size:12px;">TUNAI</strong>
+              <span class="shortcut-hint" style="font-size:10px; padding:2px 4px;">Alt+T</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:14px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:4px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
+              <button onclick="window.bayarTunai()" style="padding:10px 14px; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:700;">OK</button>
+            </div>
+          </div>
+
+          <!-- Tombol QRIS -->
+          <button onclick="window.bayarQRIS()" style="width:100%; padding:12px; font-size:13px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:10px;">
+            <span style="font-size:16px;">📱</span>
+            <span>QRIS</span>
+            <span class="shortcut-hint" style="background:#fff; color:#0284c7; font-size:10px; padding:2px 4px;">Alt+Q</span>
+          </button>
+
+          <!-- List Pembayaran -->
+          <div id="pembayaran-list" style="margin-bottom:10px;"></div>
+
+          <!-- Kembalian -->
+          <div id="kembalian-info" style="padding:10px; background:#d1fae5; border-radius:4px; font-size:13px; font-weight:700; margin-bottom:10px; display:none;">
+            Kembalian: <span id="label-kembalian" style="color:#047857;">Rp 0</span>
+          </div>
+
+          <!-- Tombol Bayar -->
+          <button onclick="window.selesaiBayar()" style="width:100%; padding:16px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">
+            BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857; font-size:10px; padding:2px 4px;">Ctrl+Z</span>
+          </button>
+
+          <button onclick="window.resetKeranjang()" style="width:100%; padding:10px; margin-top:8px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
+            Reset
+          </button>
+        </div>
+
       </div>
       
     </div>
