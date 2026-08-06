@@ -126,8 +126,6 @@ window.showFormBarangMasuk = async () => {
     </div>
   `;
 
-  renderCart();
-  
   // Format thousand separator untuk input qty & harga
   const formatNumber = (input) => {
     input.addEventListener('input', (e) => {
@@ -145,6 +143,9 @@ window.showFormBarangMasuk = async () => {
   const hargaInput = document.getElementById('input-harga');
   if (qtyInput) formatNumber(qtyInput);
   if (hargaInput) formatNumber(hargaInput);
+  
+  // Render cart AFTER HTML is in DOM
+  renderCart();
 };
 
 window.tambahItem = () => {
@@ -214,13 +215,7 @@ function renderCart() {
   }
 
   const total = itemsCart.reduce((sum, it) => sum + it.subtotal, 0);
-  console.log('renderCart - itemsCart:', itemsCart);
-  console.log('renderCart - total:', total);
-  if (totalLabel) {
-    totalLabel.textContent = formatRupiah(total);
-  } else {
-    console.error('label-total element NOT FOUND');
-  }
+  if (totalLabel) totalLabel.textContent = formatRupiah(total);
 }
 
 window.simpanBarangMasuk = async () => {
