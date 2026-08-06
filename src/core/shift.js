@@ -4,16 +4,17 @@
 /**
  * Total bagian TUNAI dari semua penjualan (mengabaikan yang void).
  * QRIS/transfer/kartu diabaikan — tidak masuk laci.
- * @param {Array} sales  array sale (punya .void dan .pembayaran[])
+ * PENTING: hitung tunaiDibayar - kembalian (yang masuk laci netto).
+ * @param {Array} sales  array sale (punya .void, .pembayaran[], .kembalian)
  * @returns {number}
  */
 export function totalTunaiPenjualan(sales) {
   let total = 0;
   for (const s of sales) {
     if (s.void) continue;
-    for (const p of s.pembayaran || []) {
-      if (p.metode === 'tunai') total += p.jumlah;
-    }
+    const tunaiDibayar = (s.pembayaran || []).filter(p => p.metode === 'tunai').reduce((sum, p) => sum + p.jumlah, 0);
+    const kembalian = s.kembalian || 0;
+    total += (tunaiDibayar - kembalian);
   }
   return total;
 }

@@ -1,6 +1,7 @@
 // UI Kas — Blue theme redesign
 import { catatCashflow, listCashflow, KATEGORI } from '../services/cashflowService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
+import { bindNumericInput, readNumericInput } from './numeric-input.js';
 
 export async function initKasUI() {
   const shiftAktif = await getShiftTerbuka();
@@ -75,7 +76,7 @@ async function renderKas(shift) {
           </div>
           <div class="mb-1">
             <label>Nominal (Rp) <span class="text-red">*</span></label>
-            <input type="number" name="nominal" required min="0" style="font-size:16px; font-weight:600;">
+            <input type="text" inputmode="numeric" name="nominal" required style="font-size:16px; font-weight:600;">
           </div>
           <div class="mb-1">
             <label>Keterangan</label>
@@ -146,7 +147,9 @@ async function renderKas(shift) {
   });
 
   // Submit form
-  document.getElementById('form-cashflow').onsubmit = async (e) => {
+  const formCashflow = document.getElementById('form-cashflow');
+  bindNumericInput(formCashflow.querySelector('[name="nominal"]'));
+  formCashflow.onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
 
@@ -155,7 +158,7 @@ async function renderKas(shift) {
         shiftId: shift.id,
         jenis: form.jenis.value,
         kategori: form.kategori.value,
-        nominal: parseInt(form.nominal.value),
+        nominal: readNumericInput(form.nominal),
         keterangan: form.keterangan.value.trim() || null,
         tunai: form.tunai.checked
       });
@@ -166,6 +169,16 @@ async function renderKas(shift) {
       alert('❌ Gagal: ' + err.message);
     }
   };
+  // Enter key handler untuk konsistensi
+  const nominalInput = formCashflow.querySelector('[name="nominal"]');
+  if (nominalInput) {
+    nominalInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        formCashflow.querySelector('[name="keterangan"]')?.focus();
+      }
+    });
+  }
 }
 
 function formatRupiah(n) {

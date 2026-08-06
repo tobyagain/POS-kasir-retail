@@ -125,7 +125,7 @@ export async function transaction(storeNames, mode, callback) {
 
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(new Error('Transaction aborted'));
+    tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
 
     try {
       callback(stores, tx);

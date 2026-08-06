@@ -6,6 +6,16 @@ export async function catatCashflow({ shiftId, jenis, kategori, nominal, keteran
   if (!shiftId) throw new Error('shiftId wajib');
   if (!['masuk', 'keluar'].includes(jenis)) throw new Error('jenis harus masuk/keluar');
 
+  nominal = Number(nominal);
+  if (!Number.isSafeInteger(nominal) || nominal <= 0) {
+    throw new Error('nominal harus bilangan bulat rupiah > 0');
+  }
+
+  // Validasi kategori
+  if (!KATEGORI[jenis].includes(kategori)) {
+    throw new Error(`Kategori '${kategori}' tidak valid untuk ${jenis}. Pilih dari: ${KATEGORI[jenis].join(', ')}`);
+  }
+
   // Validasi shift masih open
   const shift = await getByKey('shifts', shiftId);
   if (!shift || shift.status !== 'open') {
@@ -18,7 +28,7 @@ export async function catatCashflow({ shiftId, jenis, kategori, nominal, keteran
     tanggal: Date.now(),
     jenis,
     kategori: kategori || '',
-    nominal: parseInt(nominal),
+    nominal,
     keterangan: keterangan || '',
     tunai
   };

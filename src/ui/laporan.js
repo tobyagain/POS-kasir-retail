@@ -1,5 +1,5 @@
 // UI Laporan — Blue theme redesign (final tab!)
-import { laporanOmzetProfit, laporanProdukTerlaris, laporanStokMenurun, laporanShift } from '../services/reportService.js';
+import { laporanOmzetProfit, laporanProdukTerlaris, laporanStokMenurun } from '../services/reportService.js';
 
 export async function initLaporanUI() {
   await renderLaporan();
@@ -43,18 +43,13 @@ async function renderLaporan() {
       </div>
     </div>
 
-    <!-- Riwayat Shift -->
-    <div class="card">
-      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📅 Riwayat Shift</h3>
-      <div id="riwayat-shift-content"></div>
-    </div>
     </div>
     </div>
   `;
 
   // Load data awal
   await loadStokMenurun();
-  await loadRiwayatShift();
+
 
   // Form submit
   document.getElementById('form-rentang').onsubmit = async (e) => {
@@ -70,7 +65,8 @@ async function renderLaporan() {
 
 window.laporanHariIni = () => {
   const form = document.getElementById('form-rentang');
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
   form.dari.value = today;
   form.sampai.value = today;
   form.requestSubmit();
@@ -192,64 +188,8 @@ async function loadStokMenurun() {
   }
 }
 
-async function loadRiwayatShift() {
-  const container = document.getElementById('riwayat-shift-content');
-
-  try {
-    const shifts = await laporanShift({ limit: 10 });
-
-    if (shifts.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Belum ada shift</div>';
-    } else {
-      container.innerHTML = `
-        <table style="font-size:13px;">
-          <thead>
-            <tr>
-              <th>Kasir</th>
-              <th>Buka</th>
-              <th>Tutup</th>
-              <th>Omzet</th>
-              <th>Transaksi</th>
-              <th>Selisih</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${shifts.map(s => `
-              <tr>
-                <td style="font-weight:600; color:#0f172a;">${s.kasir}</td>
-                <td style="color:#64748b;">${formatWaktu(s.buka)}</td>
-                <td style="color:#64748b;">${s.tutup ? formatWaktu(s.tutup) : '-'}</td>
-                <td class="text-right font-bold" style="color:#10b981;">${s.ringkasan ? formatRupiah(s.ringkasan.omzet) : '-'}</td>
-                <td class="text-right" style="color:#64748b;">${s.ringkasan ? s.ringkasan.totalTransaksi : '-'}</td>
-                <td class="text-right">
-                  ${s.selisih !== null ? `
-                    <span class="badge ${s.selisih > 0 ? 'badge-success' : s.selisih < 0 ? 'badge-danger' : 'badge-info'}">
-                      ${s.selisih >= 0 ? '+' : ''}${formatRupiah(s.selisih)}
-                    </span>
-                  ` : '-'}
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-  } catch (err) {
-    container.innerHTML = `<div style="color:#dc2626;">❌ Error: ${err.message}</div>`;
-  }
-}
-
 function formatRupiah(n) {
-  return 'Rp ' + n.toLocaleString('id-ID');
-}
-
-function formatWaktu(ts) {
-  return new Date(ts).toLocaleDateString('id-ID', { 
-    day: '2-digit', 
-    month: 'short', 
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 }
 
 window.initLaporanUI = initLaporanUI;

@@ -17,18 +17,22 @@ export async function laporanOmzetProfit(dariTanggal, sampaiTanggal) {
   // Omzet per metode
   const perMetode = {};
   sales.forEach(s => {
-    s.pembayaran.forEach(p => {
+    (s.pembayaran || []).forEach(p => {
       if (!perMetode[p.metode]) perMetode[p.metode] = 0;
       perMetode[p.metode] += p.jumlah;
     });
   });
 
-  const totalOmzet = sales.reduce((sum, s) => sum + s.totalNetto, 0);
+  const totalOmzet = sales.reduce((sum, s) => sum + Number(s.totalNetto || 0), 0);
 
   return {
     periode: { dari: dariTanggal, sampai: sampaiTanggal },
     totalTransaksi: sales.length,
     totalOmzet,
+    omzet: totalOmzet,
+    biayaOperasional: cashflows
+      .filter(c => c.jenis === 'keluar' && c.kategori === 'operasional')
+      .reduce((sum, c) => sum + c.nominal, 0),
     perMetode,
     labaKotor: labaKotorValue,
     labaBersih: labaBersihValue

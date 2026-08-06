@@ -10,6 +10,11 @@ export async function bukaShift({ kasir, modalAwal }) {
     throw new Error('Masih ada shift terbuka. Tutup dulu sebelum buka baru.');
   }
 
+  modalAwal = Number(modalAwal);
+  if (!kasir || !Number.isSafeInteger(modalAwal) || modalAwal < 0) {
+    throw new Error('Kasir dan modal awal harus valid');
+  }
+
   const shift = {
     id: generateId('shf'),
     kasir,
@@ -33,16 +38,22 @@ export async function tutupShift(shiftId, kasFisik) {
   if (!shift) throw new Error('Shift tidak ditemukan');
   if (shift.status === 'closed') throw new Error('Shift sudah ditutup');
 
+  kasFisik = Number(kasFisik);
+  if (!Number.isSafeInteger(kasFisik) || kasFisik < 0) {
+    throw new Error('Kas fisik harus bilangan bulat rupiah >= 0');
+  }
+
   // Ambil sales & cashflow milik shift ini
   const { openDB } = await import('../data/db.js');
   const db = await openDB();
 
-  const sales = await new Promise((resolve, reject) => {
+  const salesAll = await new Promise((resolve, reject) => {
     const tx = db.transaction('sales', 'readonly');
     const req = tx.objectStore('sales').index('shiftId').getAll(shiftId);
-    req.onsuccess = () => resolve(req.result.filter(s => !s.void));
+    req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+  const sales = salesAll.filter(s => !s.void);
 
   const cashflow = await new Promise((resolve, reject) => {
     const tx = db.transaction('cashflow', 'readonly');
@@ -53,12 +64,12 @@ export async function tutupShift(shiftId, kasFisik) {
 
   // Hitung kas sistem (INV-4)
   const kasSistem = hitungKasSistem(shift, sales, cashflow);
-  const selisih = hitungSelisih(parseInt(kasFisik), kasSistem);
+  const selisih = hitungSelisih(kasFisik, kasSistem);
 
   // Ringkasan per metode bayar
   const metodeCounts = {};
   sales.forEach(s => {
-    s.pembayaran.forEach(p => {
+    (s.pembayaran || []).forEach(p => {
       if (!metodeCounts[p.metode]) metodeCounts[p.metode] = { count: 0, total: 0 };
       metodeCounts[p.metode].count++;
       metodeCounts[p.metode].total += p.jumlah;
@@ -67,7 +78,7 @@ export async function tutupShift(shiftId, kasFisik) {
 
   shift.status = 'closed';
   shift.tutup = Date.now();
-  shift.kasFisik = parseInt(kasFisik);
+  shift.kasFisik = kasFisik;
   shift.kasSistem = kasSistem;
   shift.selisih = selisih;
   shift.ringkasan = {

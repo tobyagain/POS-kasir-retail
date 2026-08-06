@@ -4,16 +4,17 @@ import { getByKey, getAll, getByIndex, put, deleteByKey, generateId } from '../d
 // Buat produk baru
 export async function buatProduk({ barcode, nama, kategori, satuan, hargaJual, stokMin }) {
   const now = Date.now();
+  const toNumber = value => Number(String(value ?? '').replace(/\D/g, '')) || 0;
   const produk = {
     id: generateId('prd'),
     barcode: barcode || '',
     nama,
     kategori: kategori || '',
     satuan: satuan || 'pcs',
-    hargaJual: parseInt(hargaJual),
+    hargaJual: toNumber(hargaJual),
     hpp: 0,               // belum ada barang masuk
     stok: 0,              // stok diubah via mutasi, bukan input
-    stokMin: parseInt(stokMin) || 0,
+    stokMin: toNumber(stokMin),
     aktif: true,
     dibuat: now,
     diubah: now
@@ -28,12 +29,13 @@ export async function updateProduk(id, { barcode, nama, kategori, satuan, hargaJ
   const produk = await getByKey('products', id);
   if (!produk) throw new Error('Produk tidak ditemukan');
 
+  const toNumber = value => Number(String(value ?? '').replace(/\D/g, '')) || 0;
   if (barcode !== undefined) produk.barcode = barcode || null;
   if (nama !== undefined) produk.nama = nama;
   if (kategori !== undefined) produk.kategori = kategori;
   if (satuan !== undefined) produk.satuan = satuan;
-  if (hargaJual !== undefined) produk.hargaJual = parseInt(hargaJual);
-  if (stokMin !== undefined) produk.stokMin = parseInt(stokMin);
+  if (hargaJual !== undefined) produk.hargaJual = toNumber(hargaJual);
+  if (stokMin !== undefined) produk.stokMin = toNumber(stokMin);
   if (aktif !== undefined) produk.aktif = aktif;
   produk.diubah = Date.now();
 

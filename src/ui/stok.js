@@ -1,6 +1,7 @@
 // UI Stok — Blue theme redesign: opname, riwayat mutasi, produk menipis
 import { listProduk } from '../services/productService.js';
 import { opnameStok, riwayatMutasi, produkMenurun } from '../services/stockService.js';
+import { bindNumericInput, readNumericInput } from './numeric-input.js';
 
 export async function initStokUI() {
   await renderMain();
@@ -119,7 +120,7 @@ window.showOpnameStok = async () => {
                 <span class="badge badge-info">${p.stok} ${p.satuan}</span>
               </td>
               <td style="width:120px;">
-                <input type="number" id="input-${p.id}" value="${p.stok}" min="0" style="width:100%; padding:8px; text-align:right; font-weight:600;">
+                <input type="text" inputmode="numeric" id="input-${p.id}" value="${p.stok.toLocaleString('id-ID')}" style="width:100%; padding:8px; text-align:right; font-weight:600;">
               </td>
               <td class="text-right" id="selisih-${p.id}" style="font-weight:700;">-</td>
               <td style="font-size:12px; color:#64748b;">
@@ -141,9 +142,10 @@ window.showOpnameStok = async () => {
   produkList.forEach(p => {
     const input = document.getElementById(`input-${p.id}`);
     const selisihLabel = document.getElementById(`selisih-${p.id}`);
+    bindNumericInput(input);
     
     input.addEventListener('input', () => {
-      const stokBaru = parseInt(input.value) || 0;
+      const stokBaru = readNumericInput(input) || 0;
       const selisih = stokBaru - p.stok;
       selisihLabel.textContent = selisih >= 0 ? `+${selisih}` : `${selisih}`;
       selisihLabel.style.color = selisih > 0 ? '#10b981' : selisih < 0 ? '#dc2626' : '#64748b';
@@ -153,7 +155,7 @@ window.showOpnameStok = async () => {
 
 window.simpanOpname = async (produkId, stokLama) => {
   const input = document.getElementById(`input-${produkId}`);
-  const stokBaru = parseInt(input.value);
+  const stokBaru = readNumericInput(input);
 
   if (isNaN(stokBaru) || stokBaru < 0) {
     alert('Isi stok fisik yang valid');

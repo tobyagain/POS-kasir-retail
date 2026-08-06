@@ -1,10 +1,12 @@
 // UI Barang Masuk — Blue theme redesign
 import { simpanBarangMasuk, listBarangMasuk } from '../services/purchaseService.js';
 import { listProduk } from '../services/productService.js';
+import { bindNumericInput, readNumericInput } from './numeric-input.js';
 
 let purchaseList = [];
 let produkOptions = [];
 let itemsCart = [];
+let selectedProdukId = '';
 
 export async function initBarangMasukUI() {
   await renderList();
@@ -88,11 +90,10 @@ window.showFormBarangMasuk = async () => {
         <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">➕ Tambah Item</h3>
         <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; margin-bottom:1rem;">
           <div>
-            <label>Produk <span class="text-red">*</span></label>
-            <select id="select-produk" style="width:100%;">
-              <option value="">-- Pilih Produk --</option>
-              ${produkOptions.map(p => `<option value="${p.id}">${p.nama}</option>`).join('')}
-            </select>
+            <label>Cari Produk <span class="text-red">*</span></label>
+            <input type="text" id="input-cari-produk" placeholder="Ketik nama atau scan barcode" autocomplete="off">
+            <div id="hasil-cari-produk" style="position:relative;"></div>
+            <div id="produk-terpilih" style="margin-top:6px; font-size:12px; color:#047857;"></div>
           </div>
           <div>
             <label>Qty <span class="text-red">*</span></label>
@@ -141,20 +142,66 @@ window.showFormBarangMasuk = async () => {
   
   const qtyInput = document.getElementById('input-qty');
   const hargaInput = document.getElementById('input-harga');
-  if (qtyInput) formatNumber(qtyInput);
-  if (hargaInput) formatNumber(hargaInput);
-  
-  // Render cart AFTER HTML is in DOM
-  renderCart();
+  const cariInput = document.getElementById('input-cari-produk');
+  const hasilCari = document.getElementById('hasil-cari-produk');
+  bindNumericInput(qtyInput);
+  bindNumericInput(hargaInput);
+  selectedProdukId = '';
+
+  const renderHasilCari = (query) => {
+    const q = query.trim().toLowerCase();
+    const hasil = q ? produkOptions.filter(p => p.nama.toLowerCase().includes(q) || (p.barcode || '').toLowerCase().includes(q)).slice(0, 8) : [];
+    hasilCari.innerHTML = hasil.map(p => `<button type="button" data-produk-id="${p.id}" style="display:block; width:100%; text-align:left; padding:8px; border:1px solid #e2e8f0; background:#fff; cursor:pointer;">${p.nama}${p.barcode ? ` — ${p.barcode}` : ''}</button>`).join('');
+  };
+  cariInput.addEventListener('input', () => renderHasilCari(cariInput.value));
+  cariInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const exact = produkOptions.find(p => p.barcode === cariInput.value.trim());
+      if (exact) pilihProduk(exact);
+    }
+  });
+  hasilCari.addEventListener('click', (e) => {
+    const id = e.target.closest('[data-produk-id]')?.dataset.produkId;
+    const produk = produkOptions.find(p => p.id === id);
+    if (produk) pilihProduk(produk);
+  });
+  function pilihProduk(produk) {
+    selectedProdukId = produk.id;
+    cariInput.value = produk.nama;
+    hasilCari.innerHTML = '';
+    document.getElementById('produk-terpilih').textContent = produk.barcode ? `Barcode: ${produk.barcode}` : 'Produk dipilih';
+    qtyInput.focus();
+  }
+
+  // Enter key handlers untuk konsistensi dengan kasir
+  if (qtyInput) {
+    qtyInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('input-harga')?.focus();
+      }
+    });
+  }
+  if (hargaInput) {
+    hargaInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window.tambahItem();
+      }
+    });
+  }
+  // Render cart AFTER HTML is in DOM (dipanggil ulang setelah tambah/hapus item)
+  setTimeout(() => renderCart(), 0);
 };
 
 window.tambahItem = () => {
-  const produkId = document.getElementById('select-produk').value;
+  const produkId = selectedProdukId;
   const qtyInput = document.getElementById('input-qty');
   const hargaInput = document.getElementById('input-harga');
   
-  const qty = parseInt(qtyInput.value.replace(/\D/g, ''));
-  const hargaBeli = parseInt(hargaInput.value.replace(/\D/g, ''));
+  const qty = readNumericInput(qtyInput);
+  const hargaBeli = readNumericInput(hargaInput);
 
   if (!produkId) {
     alert('Pilih produk');
@@ -181,9 +228,13 @@ window.tambahItem = () => {
   });
 
   // Reset form item
-  document.getElementById('select-produk').value = '';
+  selectedProdukId = '';
+  document.getElementById('input-cari-produk').value = '';
   qtyInput.value = '';
   hargaInput.value = '';
+  const selectedLabel = document.getElementById('produk-terpilih');
+  if (selectedLabel) selectedLabel.textContent = '';
+  document.getElementById('input-cari-produk')?.focus();
 
   renderCart();
 };
@@ -194,8 +245,11 @@ window.hapusItemBarangMasuk = (index) => {
 };
 
 function renderCart() {
-  const container = document.getElementById('cart-content');
-  const totalLabel = document.getElementById('label-total');
+  const panel = document.querySelector('[data-panel="barang-masuk"]');
+  const container = panel?.querySelector('#cart-content');
+  const totalLabel = panel?.querySelector('#label-total');
+
+  if (!container) return;
 
   if (itemsCart.length === 0) {
     container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Belum ada item</div>';
@@ -214,8 +268,12 @@ function renderCart() {
     `).join('');
   }
 
+  // Update total
   const total = itemsCart.reduce((sum, it) => sum + it.subtotal, 0);
-  if (totalLabel) totalLabel.textContent = formatRupiah(total);
+  if (totalLabel) {
+    totalLabel.textContent = formatRupiah(total);
+    totalLabel.style.color = total > 0 ? '#047857' : '#64748b';
+  }
 }
 
 window.simpanBarangMasuk = async () => {

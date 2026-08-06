@@ -11,7 +11,7 @@ let inputMode = 'barcode'; // 'barcode' | 'produk'
 
 export async function initKasirUI() {
   shiftAktif = await getShiftTerbuka();
-  
+
   if (!shiftAktif) {
     renderGuardShift();
     return;
@@ -41,37 +41,37 @@ async function renderKasir() {
   const container = document.querySelector('[data-panel="kasir"]');
   container.innerHTML = `
     <style>
-      .shortcut-hint { 
-        display: inline-block; 
-        background: #e0f2fe; 
-        color: #0284c7; 
-        padding: 2px 6px; 
-        border-radius: 3px; 
-        font-size: 11px; 
-        font-weight: 600; 
+      .shortcut-hint {
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0284c7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 600;
         margin-left: 6px;
       }
       /* Hide shortcuts hints on mobile/tablet (touch devices) */
       @media (hover: none) {
         .shortcut-hint { display: none; }
       }
-      .tab-btn-mode { 
-        padding: 10px 20px; 
-        border: none; 
-        background: #e0f2fe; 
-        color: #0284c7; 
-        font-weight: 600; 
-        cursor: pointer; 
+      .tab-btn-mode {
+        padding: 10px 20px;
+        border: none;
+        background: #e0f2fe;
+        color: #0284c7;
+        font-weight: 600;
+        cursor: pointer;
         border-radius: 6px 6px 0 0;
       }
-      .tab-btn-mode.active { 
-        background: #0284c7; 
-        color: #fff; 
+      .tab-btn-mode.active {
+        background: #0284c7;
+        color: #fff;
       }
     </style>
 
     <div style="display:grid; grid-template-columns:1fr 420px; gap:16px; height:calc(100vh - 120px); padding:0;">
-      
+
       <!-- KIRI: PRODUK (LEBAR 60-70%) -->
       <div style="display:flex; flex-direction:column; gap:12px;">
         <!-- Search Produk -->
@@ -82,11 +82,11 @@ async function renderKasir() {
           </div>
 
           <div style="padding:12px;">
-            <input 
-              type="text" 
-              id="input-search-produk" 
-              placeholder="Scan / Ketik nama produk..." 
-              style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;" 
+            <input
+              type="text"
+              id="input-search-produk"
+              placeholder="Scan / Ketik nama produk..."
+              style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;"
               autofocus>
             <div style="font-size:11px; color:#64748b; margin-top:6px;">
               <span class="shortcut-hint">F5</span> fokus input
@@ -111,7 +111,7 @@ async function renderKasir() {
 
       <!-- KANAN: KERANJANG + PAYMENT STACK (420px) -->
       <div style="display:flex; flex-direction:column; gap:12px;">
-        
+
         <!-- KERANJANG (flex:1 ambil space tersisa) -->
         <div style="background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column; flex:1; min-height:0;">
           <h2 style="margin:0 0 12px 0; padding-bottom:12px; border-bottom:2px solid #e2e8f0; color:#0f172a; font-size:16px;">DAFTAR ITEM</h2>
@@ -173,7 +173,7 @@ async function renderKasir() {
         </div>
 
       </div>
-      
+
     </div>
   `;
 
@@ -255,8 +255,8 @@ function renderProdukGrid(searchQuery = '') {
 
   let filtered = produkList;
   if (searchQuery) {
-    filtered = produkList.filter(p => 
-      p.nama.toLowerCase().includes(searchQuery) || 
+    filtered = produkList.filter(p =>
+      p.nama.toLowerCase().includes(searchQuery) ||
       (p.barcode && p.barcode.includes(searchQuery))
     );
   }
@@ -267,7 +267,7 @@ function renderProdukGrid(searchQuery = '') {
   }
 
   grid.innerHTML = filtered.slice(0, 50).map(p => `
-    <div onclick="window.tambahKeKeranjangById('${p.id}')" 
+    <div onclick="window.tambahKeKeranjangById('${p.id}')"
          style="padding:10px 12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.15s; margin-bottom:6px;"
          onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(3px)';"
          onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff'; this.style.transform='translateX(0)';">
@@ -376,10 +376,10 @@ if (kasirPanel) {
   kasirPanel.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
-    
+
     const action = btn.dataset.action;
     const index = parseInt(btn.dataset.index);
-    
+
     if (action === 'hapus') {
       window.hapusItemKasir(index);
     } else if (action === 'qty-minus') {
@@ -391,6 +391,8 @@ if (kasirPanel) {
 }
 
 let pembayaranList = [];
+let paymentInProgress = false;
+let shortcutsInitialized = false;
 
 window.bayarTunai = () => {
   const inputTunai = document.getElementById('input-tunai');
@@ -402,8 +404,8 @@ window.bayarTunai = () => {
     return;
   }
 
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
-  
+  const totalNetto = hitungTotalNetto();
+
   if (totalNetto <= 0) {
     alert('Keranjang kosong atau total 0');
     return;
@@ -416,8 +418,8 @@ window.bayarTunai = () => {
 };
 
 window.bayarQRIS = () => {
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
-  
+  const totalNetto = hitungTotalNetto();
+
   if (totalNetto <= 0) {
     alert('Keranjang kosong atau total 0');
     return;
@@ -445,7 +447,7 @@ function renderPembayaran() {
   const kembalianInfo = document.getElementById('kembalian-info');
   if (!container) return;
 
-  const totalNetto = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
+  const totalNetto = hitungTotalNetto();
   const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
   const kembalian = Math.max(0, dibayar - totalNetto);
 
@@ -475,57 +477,53 @@ function renderPembayaran() {
   hitungTotal();
 }
 
-function hitungTotal() {
+function hitungTotalNetto() {
   const subtotal = keranjang.reduce((sum, it) => sum + it.subtotal, 0);
-  const diskonNota = parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
-  const total = subtotal - diskonNota;
+  const diskon = parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
+  return Math.max(0, subtotal - diskon);
+}
 
-  document.getElementById('label-total').textContent = formatRupiah(total);
+function hitungTotal() {
+  document.getElementById('label-total').textContent = formatRupiah(hitungTotalNetto());
 }
 
 window.selesaiBayar = async () => {
+  if (paymentInProgress) return;
   if (keranjang.length === 0) {
     alert('Keranjang kosong');
     return;
   }
-
   if (pembayaranList.length === 0) {
     alert('Pilih metode bayar (Tunai/QRIS)');
     return;
   }
 
   const diskonNota = parseInt(document.getElementById('input-diskon-nota').value.replace(/\D/g, '') || 0);
-  const total = keranjang.reduce((sum, it) => sum + it.subtotal, 0) - diskonNota;
+  const total = hitungTotalNetto();
   const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
-
   if (dibayar < total) {
     alert(`Kurang bayar: ${formatRupiah(total - dibayar)}`);
     return;
   }
 
+  paymentInProgress = true;
   try {
-    const saleData = {
+    await simpanPenjualan({
       shiftId: shiftAktif.id,
       items: keranjang,
       diskonNota,
       pembayaran: pembayaranList,
       kasir: shiftAktif.kasir
-    };
-
-    await simpanPenjualan(saleData);
+    });
 
     const { listPenjualan } = await import('../services/saleService.js');
     const sales = await listPenjualan({ shiftId: shiftAktif.id });
-    const lastSale = sales[0];
-
-    if (lastSale) {
-      await cetakStruk(lastSale);
-    }
-
-    // Hapus alert "Transaksi berhasil" — struk sudah bukti
+    if (sales[0]) await cetakStruk(sales[0]);
     resetKeranjang();
   } catch (err) {
     alert('Gagal: ' + err.message);
+  } finally {
+    paymentInProgress = false;
   }
 };
 
@@ -534,54 +532,54 @@ window.resetKeranjang = () => {
   pembayaranList = [];
   const diskonInput = document.getElementById('input-diskon-nota');
   if (diskonInput) diskonInput.value = '0';
-  if (inputMode === 'barcode') {
-    const barcodeInput = document.getElementById('input-barcode');
-    if (barcodeInput) {
-      barcodeInput.value = '';
-      barcodeInput.focus();
-    }
-  } else {
-    const searchInput = document.getElementById('input-search');
-    if (searchInput) searchInput.value = '';
-    renderProdukGrid();
+
+  // Fix: elemen yang benar setelah merge unified search
+  const searchInput = document.getElementById('input-search-produk');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
   }
+
+  renderProdukGrid();
   renderKeranjang();
   renderPembayaran();
 };
 
 // Keyboard Shortcuts
 function initShortcuts() {
+  if (shortcutsInitialized) return;
+  shortcutsInitialized = true;
   document.addEventListener('keydown', (e) => {
     // F5 - Fokus input search produk
     if (e.key === 'F5') {
       e.preventDefault();
       document.getElementById('input-search-produk')?.focus();
     }
-    
+
     // Ctrl+F - Cari produk
     if (e.ctrlKey && e.key === 'f') {
       e.preventDefault();
       document.getElementById('input-search-produk')?.focus();
     }
-    
+
     // Ctrl+P - Riwayat (reprint)
     if (e.ctrlKey && e.key === 'p') {
       e.preventDefault();
       window.showRiwayatPenjualan();
     }
-    
+
     // Ctrl+Z - Bayar
     if (e.ctrlKey && e.key === 'z') {
       e.preventDefault();
       window.selesaiBayar();
     }
-    
+
     // Alt+T - Fokus input tunai (tidak ganggu ketik produk)
     if (e.altKey && (e.key === 't' || e.key === 'T')) {
       e.preventDefault();
       document.getElementById('input-tunai')?.focus();
     }
-    
+
     // Alt+Q - Bayar QRIS pas (tidak ganggu ketik produk)
     if (e.altKey && (e.key === 'q' || e.key === 'Q')) {
       e.preventDefault();

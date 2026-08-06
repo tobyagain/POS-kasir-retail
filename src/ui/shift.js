@@ -2,6 +2,7 @@
 import { bukaShift, tutupShift, getShiftTerbuka, listShifts } from '../services/shiftService.js';
 import { listPenjualan } from '../services/saleService.js';
 import { listCashflow } from '../services/cashflowService.js';
+import { bindNumericInput, readNumericInput } from './numeric-input.js';
 
 export async function initShiftUI() {
   const shiftAktif = await getShiftTerbuka();
@@ -29,7 +30,7 @@ async function renderFormBuka() {
         </div>
         <div class="mb-1">
           <label>Modal Awal (Rp) <span class="text-red">*</span></label>
-          <input type="number" name="modalAwal" required min="0" value="100000">
+          <input type="text" inputmode="numeric" name="modalAwal" required value="100.000">
         </div>
         <button type="submit" class="primary" style="width:100%; margin-top:1rem;">Buka Shift</button>
       </form>
@@ -64,13 +65,15 @@ async function renderFormBuka() {
     </div>
   `;
 
-  document.getElementById('form-buka-shift').onsubmit = async (e) => {
+  const formBukaShift = document.getElementById('form-buka-shift');
+  bindNumericInput(formBukaShift.querySelector('[name="modalAwal"]'));
+  formBukaShift.onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
     try {
       await bukaShift({
         kasir: form.kasir.value.trim(),
-        modalAwal: form.modalAwal.value
+        modalAwal: readNumericInput(form.modalAwal)
       });
       alert('Shift dibuka');
       initShiftUI();
@@ -78,6 +81,17 @@ async function renderFormBuka() {
       alert('Gagal: ' + err.message);
     }
   };
+  // Enter key handler untuk konsistensi
+  const kasirInput = formBukaShift.querySelector('[name="kasir"]');
+  const modalInput = formBukaShift.querySelector('[name="modalAwal"]');
+  if (kasirInput) {
+    kasirInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        modalInput?.focus();
+      }
+    });
+  }
 }
 
 async function renderShiftAktif(shift) {
@@ -92,16 +106,12 @@ async function renderShiftAktif(shift) {
   const totalVoid = salesVoid.length;
   const totalOmzet = salesValid.reduce((sum, s) => sum + s.totalNetto, 0);
   
-  // Tunai terkumpul = tunai dibayar - kembalian (yang masuk laci)
-  const totalTunai = salesValid.reduce((sum, s) => {
-    const tunaiDibayar = s.pembayaran.filter(p => p.metode === 'tunai').reduce((s, p) => s + p.jumlah, 0);
-    const kembalian = s.kembalian || 0;
-    return sum + (tunaiDibayar - kembalian);
-  }, 0);
-
-  const kasMasuk = cashflows.filter(c => c.jenis === 'masuk' && c.tunai).reduce((sum, c) => sum + c.nominal, 0);
-  const kasKeluar = cashflows.filter(c => c.jenis === 'keluar' && c.tunai).reduce((sum, c) => sum + c.nominal, 0);
-  const kasSistem = shift.modalAwal + totalTunai + kasMasuk - kasKeluar;
+  // Import dari core untuk konsistensi rumus (fix duplikasi logik)
+  const { hitungKasSistem, totalTunaiPenjualan, totalKasManual } = await import('../core/shift.js');
+  const kasSistem = hitungKasSistem(shift, salesValid, cashflows);
+  // Hitung detail untuk display
+  const totalTunai = totalTunaiPenjualan(salesValid);
+  const { masuk: kasMasuk, keluar: kasKeluar } = totalKasManual(cashflows);
 
   const container = document.querySelector('[data-panel="shift"]');
   container.innerHTML = `
@@ -219,7 +229,7 @@ async function renderShiftAktif(shift) {
       <form id="form-tutup-shift" style="display:flex; gap:1rem; align-items:flex-end;">
         <div style="flex:1;">
           <label>Kas Fisik (Hitung Manual) <span class="text-red">*</span></label>
-          <input type="number" name="kasFisik" required min="0" placeholder="${kasSistem}" style="font-size:16px; font-weight:700;">
+          <input type="text" inputmode="numeric" name="kasFisik" required placeholder="${formatRupiah(kasSistem)}" style="font-size:16px; font-weight:700;">
         </div>
         <button type="submit" class="primary" style="padding:14px 32px; background:#dc2626;">Tutup Shift</button>
       </form>
@@ -228,10 +238,12 @@ async function renderShiftAktif(shift) {
     </div>
   `;
 
-  document.getElementById('form-tutup-shift').onsubmit = async (e) => {
+  const formTutupShift = document.getElementById('form-tutup-shift');
+  bindNumericInput(formTutupShift.querySelector('[name="kasFisik"]'));
+  formTutupShift.onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
-    const kasFisik = parseInt(form.kasFisik.value);
+    const kasFisik = readNumericInput(form.kasFisik);
     const selisih = kasFisik - kasSistem;
 
     const konfirm = confirm(`Tutup shift?\n\nKas Sistem: ${formatRupiah(kasSistem)}\nKas Fisik: ${formatRupiah(kasFisik)}\nSelisih: ${formatRupiah(selisih)} ${selisih > 0 ? '(lebih)' : selisih < 0 ? '(kurang)' : '(pas)'}\n\nLanjutkan?`);

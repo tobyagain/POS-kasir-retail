@@ -1,104 +1,90 @@
 // purchaseService — barang masuk, update stok+HPP, stockMoves
-import { getByKey, put, transaction, generateId, formatNomorDokumen, getPeriode } from '../data/db.js';
+import { getByKey, transaction, generateId, formatNomorDokumen, getPeriode } from '../data/db.js';
 import { hitungHppBaru } from '../core/hpp.js';
+import { hitungTotalPembelian } from '../core/purchase.js';
 
-// Simpan barang masuk — update stok+HPP+stockMoves atomik
+function money(value, name) {
+  const n = Number(value);
+  if (!Number.isSafeInteger(n) || n < 0) throw new Error(`${name} harus bilangan bulat rupiah >= 0`);
+  return n;
+}
+
+function normalizeItems(items) {
+  if (!Array.isArray(items) || items.length === 0) throw new Error('Minimal 1 item');
+  return items.map(item => {
+    const qty = Number(item.qty);
+    if (!Number.isSafeInteger(qty) || qty <= 0) throw new Error('qty harus bilangan bulat > 0');
+    const hargaBeli = money(item.hargaBeli, 'harga beli');
+    return { ...item, qty, hargaBeli, subtotal: qty * hargaBeli };
+  });
+}
+
 export async function simpanBarangMasuk({ supplier, items, catatan }) {
+  if (!supplier || !String(supplier).trim()) throw new Error('Supplier wajib');
+  items = normalizeItems(items);
   const now = Date.now();
   const periode = getPeriode(now);
+  let savedPurchase;
 
-  return transaction(['purchases', 'products', 'stockMoves', 'meta'], 'readwrite', (stores) => {
-    // Counter nota
+  await transaction(['purchases', 'products', 'stockMoves', 'meta'], 'readwrite', (stores, tx) => {
     const counterReq = stores.meta.get('counterNota');
+    counterReq.onerror = () => tx.abort();
     counterReq.onsuccess = () => {
-      const counter = counterReq.result.value;
-      const resetBulanan = counter.periode !== periode;
-      const seq = resetBulanan ? 1 : counter.next;
+      const counter = counterReq.result?.value || { periode: '', next: 1 };
+      const seq = counter.periode !== periode ? 1 : counter.next;
       const noNota = formatNomorDokumen('BM', periode, seq);
+      stores.meta.put({ key: 'counterNota', value: { periode, next: seq + 1 } });
 
-      // Update counter
-      stores.meta.put({
-        key: 'counterNota',
-        value: { periode, next: seq + 1 }
-      });
-
-      // Hitung total
-      const itemsWithSubtotal = items.map(it => ({
-        ...it,
-        subtotal: it.qty * it.hargaBeli
-      }));
-      const total = itemsWithSubtotal.reduce((sum, it) => sum + it.subtotal, 0);
-
-      // Simpan purchase
-      const purchase = {
-        id: generateId('pur'),
-        noNota,
-        tanggal: now,
-        supplier,
-        items: itemsWithSubtotal,
-        total,
-        catatan: catatan || ''
+      savedPurchase = {
+        id: generateId('pur'), noNota, tanggal: now, supplier: String(supplier).trim(),
+        items, total: hitungTotalPembelian(items), catatan: catatan || ''
       };
-      stores.purchases.put(purchase);
+      stores.purchases.put(savedPurchase);
 
-      // Update setiap produk: stok + HPP (INV-3)
-      items.forEach(item => {
-        const prodReq = stores.products.get(item.produkId);
-        prodReq.onsuccess = () => {
-          const produk = prodReq.result;
-          if (!produk) throw new Error(`Produk ${item.produkId} tidak ditemukan`);
-
-          const stokLama = produk.stok;
-          const hppLama = produk.hpp;
-          const qtyMasuk = item.qty;
-          const hargaBeli = item.hargaBeli;
-
-          // Hitung HPP baru (INV-3: kasus stok<=0 ditangani di core/hpp.js)
-          const { hppBaru, stokBaru } = hitungHppBaru({ stokLama, hppLama, qtyMasuk, hargaBeli });
-
+      let index = 0;
+      const updateNext = () => {
+        if (index >= items.length) return;
+        const item = items[index++];
+        const req = stores.products.get(item.produkId);
+        req.onerror = () => tx.abort();
+        req.onsuccess = () => {
+          const produk = req.result;
+          if (!produk) { tx.abort(); return; }
+          const { hppBaru, stokBaru } = hitungHppBaru({
+            stokLama: produk.stok, hppLama: produk.hpp,
+            qtyMasuk: item.qty, hargaBeli: item.hargaBeli
+          });
           produk.stok = stokBaru;
           produk.hpp = hppBaru;
           produk.diubah = now;
           stores.products.put(produk);
-
-          // Catat mutasi stok (INV-6)
-          const move = {
-            id: generateId('stk'),
-            produkId: produk.id,
-            tanggal: now,
-            tipe: 'masuk',
-            qty: qtyMasuk,
-            saldoSesudah: stokBaru,
-            refId: purchase.id,
-            refNo: noNota,
-            catatan: `Barang masuk dari ${supplier}`
-          };
-          stores.stockMoves.put(move);
+          stores.stockMoves.put({
+            id: generateId('stk'), produkId: produk.id, tanggal: now, tipe: 'masuk',
+            qty: item.qty, saldoSesudah: stokBaru, refId: savedPurchase.id, refNo: noNota,
+            catatan: `Barang masuk dari ${savedPurchase.supplier}`
+          });
+          updateNext();
         };
-      });
+      };
+      updateNext();
     };
   });
+  return savedPurchase;
 }
 
-// List barang masuk (rentang tanggal opsional)
 export async function listBarangMasuk({ dariTanggal, sampaiTanggal } = {}) {
   const db = await import('../data/db.js').then(m => m.openDB());
   return new Promise((resolve, reject) => {
     const tx = db.transaction('purchases', 'readonly');
     const store = tx.objectStore('purchases');
     const idx = store.index('tanggal');
-    
-    const range = dariTanggal && sampaiTanggal
-      ? IDBKeyRange.bound(dariTanggal, sampaiTanggal)
-      : null;
-    
-    const req = range ? idx.getAll(range) : store.getAll();
+    const req = dariTanggal && sampaiTanggal
+      ? idx.getAll(IDBKeyRange.bound(dariTanggal, sampaiTanggal)) : store.getAll();
     req.onsuccess = () => resolve(req.result.sort((a, b) => b.tanggal - a.tanggal));
     req.onerror = () => reject(req.error);
   });
 }
 
-// Get satu barang masuk
 export async function getBarangMasuk(id) {
   return getByKey('purchases', id);
 }

@@ -21,11 +21,10 @@ export function labaKotor(sales) {
   for (const s of sales) {
     if (s.void) continue;
     
-    // Hitung total bruto untuk distribusi proporsional diskon nota
-    const totalBruto = s.items.reduce((sum, it) => sum + it.subtotal, 0);
+    const items = Array.isArray(s.items) ? s.items : [];
+    const totalBruto = items.reduce((sum, it) => sum + (it.subtotal || 0), 0);
     const diskonNota = s.diskonNota || 0;
-    
-    for (const it of s.items || []) {
+    for (const it of items) {
       // Laba item sebelum diskon nota
       const labaItem = (it.hargaJualSnapshot - it.hppSnapshot) * it.qty - (it.diskonItem || 0);
       
@@ -63,14 +62,15 @@ export function produkTerlaris(sales, limit = 10) {
   const terjual = {};
   for (const s of sales) {
     if (s.void) continue;
-    for (const it of s.items || []) {
+    for (const it of (Array.isArray(s.items) ? s.items : [])) {
       if (!terjual[it.produkId]) {
-        terjual[it.produkId] = { produkId: it.produkId, nama: it.nama, terjual: 0 };
+        terjual[it.produkId] = { produkId: it.produkId, nama: it.nama, totalQty: 0, totalOmzet: 0 };
       }
-      terjual[it.produkId].terjual += it.qty;
+      terjual[it.produkId].totalQty += it.qty;
+      terjual[it.produkId].totalOmzet += it.subtotal || 0;
     }
   }
-  return Object.values(terjual)
-    .sort((a, b) => b.terjual - a.terjual)
+    return Object.values(terjual)
+    .sort((a, b) => b.totalQty - a.totalQty)
     .slice(0, limit);
 }

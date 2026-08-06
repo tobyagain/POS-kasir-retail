@@ -16,7 +16,17 @@ const sales = [
 ];
 
 test('tunai penjualan hanya bagian tunai & exclude void', () => {
-  assert.equal(totalTunaiPenjualan(sales), 15000); // 10000 + 5000
+  // Fix: test belum hitung kembalian (INV-4)
+  const salesWithKembalian = [
+    { void: false, pembayaran: [{ metode: 'tunai', jumlah: 15000 }], kembalian: 5000 }, // netto 10000
+    { void: false, pembayaran: [{ metode: 'qris', jumlah: 25000 }], kembalian: 0 },
+    { void: false, pembayaran: [
+        { metode: 'tunai', jumlah: 6000 },
+        { metode: 'qris', jumlah: 5000 },
+    ], kembalian: 1000 }, // tunai netto 5000
+    { void: true, pembayaran: [{ metode: 'tunai', jumlah: 99999 }], kembalian: 0 }, // diabaikan
+  ];
+  assert.equal(totalTunaiPenjualan(salesWithKembalian), 15000); // 10000 + 0 + 5000
 });
 
 test('QRIS tidak masuk tunai tapi masuk omzet', () => {
@@ -38,8 +48,12 @@ test('kas manual: hanya yang tunai memengaruhi laci', () => {
 test('kas sistem = modal + tunai + masuk - keluar (INV-4)', () => {
   const shift = { modalAwal: 200000 };
   const cf = [{ jenis: 'keluar', nominal: 50000, tunai: true }];
-  // 200000 + 15000 (tunai jual) + 0 - 50000 = 165000
-  assert.equal(hitungKasSistem(shift, sales, cf), 165000);
+  const salesWithKembalian = [
+    { void: false, pembayaran: [{ metode: 'tunai', jumlah: 15000 }], kembalian: 5000 }, // 10000
+    { void: false, pembayaran: [{ metode: 'tunai', jumlah: 6000 }], kembalian: 1000 },  // 5000
+  ];
+  // 200000 + 15000 (tunai netto) + 0 - 50000 = 165000
+  assert.equal(hitungKasSistem(shift, salesWithKembalian, cf), 165000);
 });
 
 test('selisih lebih & kurang', () => {

@@ -1,5 +1,6 @@
 // UI Produk — list, tambah, edit (Blue theme redesign)
 import { listProduk, buatProduk, updateProduk, nonaktifkanProduk } from '../services/productService.js';
+import { bindNumericInput, readNumericInput } from './numeric-input.js';
 
 let produkList = [];
 
@@ -108,7 +109,7 @@ window.showFormTambahProduk = () => {
           </div>
           <div>
             <label>Stok Minimum</label>
-            <input type="number" name="stokMin" value="10" min="0" placeholder="Alert stok habis">
+            <input type="text" inputmode="numeric" name="stokMin" value="10" placeholder="Alert stok habis">
           </div>
         </div>
 
@@ -135,19 +136,8 @@ window.showFormTambahProduk = () => {
     </div>
   `;
 
-  // Format thousand separator untuk harga jual
-  const hargaInput = document.getElementById('input-harga-jual');
-  if (hargaInput) {
-    hargaInput.addEventListener('input', (e) => {
-      let val = e.target.value.replace(/\D/g, '');
-      if (val === '') val = '0';
-      e.target.value = parseInt(val).toLocaleString('id-ID');
-    });
-    hargaInput.addEventListener('focus', (e) => {
-      let val = e.target.value.replace(/\D/g, '');
-      e.target.value = val === '0' ? '' : val;
-    });
-  }
+  bindNumericInput(document.getElementById('input-harga-jual'));
+  bindNumericInput(document.querySelector('#form-produk [name="stokMin"]'));
 
   document.getElementById('form-produk').onsubmit = async (e) => {
     e.preventDefault();
@@ -158,8 +148,8 @@ window.showFormTambahProduk = () => {
         nama: form.nama.value.trim(),
         kategori: form.kategori.value.trim() || null,
         satuan: form.satuan.value,
-        hargaJual: parseInt(form.hargaJual.value.replace(/\D/g, '')),
-        stokMin: parseInt(form.stokMin.value) || 0
+        hargaJual: readNumericInput(form.hargaJual),
+        stokMin: readNumericInput(form.stokMin)
       });
       alert('✅ Produk berhasil ditambahkan');
       initProdukUI();
@@ -213,13 +203,13 @@ window.editProduk = async (produkId) => {
           </div>
           <div>
             <label>Stok Minimum</label>
-            <input type="number" name="stokMin" value="${produk.stokMin}" min="0">
+            <input type="text" inputmode="numeric" name="stokMin" value="${produk.stokMin.toLocaleString('id-ID')}">
           </div>
         </div>
 
         <div class="mt-1">
           <label>Harga Jual (Rp) <span class="text-red">*</span></label>
-          <input type="number" name="hargaJual" value="${produk.hargaJual}" required min="0" style="font-size:16px; font-weight:600;">
+          <input type="text" inputmode="numeric" name="hargaJual" value="${produk.hargaJual.toLocaleString('id-ID')}" required style="font-size:16px; font-weight:600;">
         </div>
 
         <div style="margin-top:1rem; padding:1rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px;">
@@ -248,6 +238,9 @@ window.editProduk = async (produkId) => {
     </div>
   `;
 
+  bindNumericInput(document.querySelector('#form-edit [name="stokMin"]'));
+  bindNumericInput(document.querySelector('#form-edit [name="hargaJual"]'));
+
   document.getElementById('form-edit').onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -257,8 +250,8 @@ window.editProduk = async (produkId) => {
         nama: form.nama.value.trim(),
         kategori: form.kategori.value.trim() || null,
         satuan: form.satuan.value,
-        hargaJual: form.hargaJual.value,
-        stokMin: form.stokMin.value
+        hargaJual: readNumericInput(form.hargaJual),
+        stokMin: readNumericInput(form.stokMin)
       });
       alert('✅ Produk berhasil diupdate');
       initProdukUI();
