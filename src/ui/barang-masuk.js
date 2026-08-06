@@ -214,7 +214,13 @@ function renderCart() {
   }
 
   const total = itemsCart.reduce((sum, it) => sum + it.subtotal, 0);
-  if (totalLabel) totalLabel.textContent = formatRupiah(total);
+  console.log('renderCart - itemsCart:', itemsCart);
+  console.log('renderCart - total:', total);
+  if (totalLabel) {
+    totalLabel.textContent = formatRupiah(total);
+  } else {
+    console.error('label-total element NOT FOUND');
+  }
 }
 
 window.simpanBarangMasuk = async () => {
