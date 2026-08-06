@@ -75,12 +75,12 @@ window.showFormBarangMasuk = async () => {
       <div class="card">
         <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📋 Info Pembelian</h3>
         <div class="mb-1">
-          <label>Qty <span class="text-red">*</span></label>
-          <input type="text" id="input-qty" required placeholder="Jumlah barang">
+          <label>Supplier <span class="text-red">*</span></label>
+          <input type="text" id="input-supplier" required placeholder="Nama supplier">
         </div>
         <div class="mb-1">
-          <label>Harga Beli (Rp) <span class="text-red">*</span></label>
-          <input type="text" id="input-harga" required placeholder="Per unit">
+          <label>Catatan</label>
+          <textarea id="input-catatan" rows="2" placeholder="Opsional"></textarea>
         </div>
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e2e8f0;">
@@ -96,11 +96,11 @@ window.showFormBarangMasuk = async () => {
           </div>
           <div>
             <label>Qty <span class="text-red">*</span></label>
-            <input type="number" id="input-qty" min="1" placeholder="0">
+            <input type="text" id="input-qty" placeholder="0">
           </div>
           <div>
             <label>Harga Beli <span class="text-red">*</span></label>
-            <input type="number" id="input-harga" min="0" placeholder="0">
+            <input type="text" id="input-harga" placeholder="0">
           </div>
         </div>
         <button class="primary" onclick="window.tambahItem()" style="width:100%;">+ Tambah ke List</button>

@@ -73,6 +73,14 @@ async function renderMain() {
 
 window.showOpnameStok = async () => {
   const produkList = await listProduk({ aktif: true });
+  
+  // Get last opname date for each product
+  const lastOpname = {};
+  for (const p of produkList) {
+    const mutasi = await riwayatMutasi(p.id, { limit: 50 });
+    const opnameMove = mutasi.find(m => m.tipe === 'opname');
+    lastOpname[p.id] = opnameMove ? opnameMove.tanggal : null;
+  }
 
   const container = document.querySelector('[data-panel="stok"]');
   container.innerHTML = `
@@ -83,12 +91,12 @@ window.showOpnameStok = async () => {
     </div>
 
     <div style="flex:1; overflow-y:auto;">
-    <div class="card" style="max-width:800px;">
+    <div class="card" style="max-width:900px;">
       <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:6px; padding:1rem; margin-bottom:1.5rem;">
         <div style="font-weight:600; color:#92400e; margin-bottom:4px;">ℹ️ Tentang Opname Stok</div>
         <p style="font-size:13px; color:#92400e; margin:0; line-height:1.5;">
           Opname = koreksi stok manual. Gunakan saat ada selisih fisik vs sistem (misal: barang rusak, hilang, atau salah hitung).
-          Setiap perubahan tercatat sebagai mutasi.
+          Setiap perubahan tercatat sebagai mutasi dengan timestamp untuk audit trail.
         </p>
       </div>
 
@@ -99,6 +107,7 @@ window.showOpnameStok = async () => {
             <th>Stok Sistem</th>
             <th>Stok Fisik (Baru)</th>
             <th>Selisih</th>
+            <th>Terakhir Opname</th>
             <th>Aksi</th>
           </tr>
         </thead>
@@ -109,12 +118,15 @@ window.showOpnameStok = async () => {
               <td class="text-right">
                 <span class="badge badge-info">${p.stok} ${p.satuan}</span>
               </td>
-              <td style="width:150px;">
+              <td style="width:120px;">
                 <input type="number" id="input-${p.id}" value="${p.stok}" min="0" style="width:100%; padding:8px; text-align:right; font-weight:600;">
               </td>
               <td class="text-right" id="selisih-${p.id}" style="font-weight:700;">-</td>
+              <td style="font-size:12px; color:#64748b;">
+                ${lastOpname[p.id] ? formatTanggal(lastOpname[p.id]) : '<span style="color:#94a3b8;">Belum pernah</span>'}
+              </td>
               <td>
-                <button class="primary" style="padding:6px 16px; font-size:12px;" onclick="window.simpanOpname('${p.id}', ${p.stok})">Simpan</button>
+                <button class="primary" style="padding:6px 12px; font-size:12px;" onclick="window.simpanOpname('${p.id}', ${p.stok})">Simpan</button>
               </td>
             </tr>
           `).join('')}

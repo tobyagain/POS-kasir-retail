@@ -8,9 +8,11 @@ export async function initLaporanUI() {
 async function renderLaporan() {
   const container = document.querySelector('[data-panel="laporan"]');
   container.innerHTML = `
-    <h2 style="color:#0284c7; margin-bottom:1.5rem;">📊 Laporan & Analisis</h2>
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
+      <h2 style="color:#0284c7; margin-bottom:1.5rem;">📊 Laporan & Analisis</h2>
 
-    <!-- Laporan Omzet & Profit -->
+      <div style="flex:1; overflow-y:auto;">
+        <!-- Laporan Omzet & Profit -->
     <div class="card" style="margin-bottom:1.5rem;">
       <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit</h3>
       <form id="form-rentang" style="display:grid; grid-template-columns:auto auto auto auto; gap:12px; align-items:end;">
@@ -45,6 +47,8 @@ async function renderLaporan() {
     <div class="card">
       <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📅 Riwayat Shift</h3>
       <div id="riwayat-shift-content"></div>
+    </div>
+    </div>
     </div>
   `;
 

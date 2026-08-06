@@ -114,7 +114,7 @@ window.showFormTambahProduk = () => {
 
         <div class="mt-1">
           <label>Harga Jual (Rp) <span class="text-red">*</span></label>
-          <input type="number" name="hargaJual" required min="0" placeholder="Harga jual ke pelanggan" style="font-size:16px; font-weight:600;">
+          <input type="text" name="hargaJual" id="input-harga-jual" required placeholder="Harga jual ke pelanggan" style="font-size:16px; font-weight:600;">
         </div>
 
         <div style="margin-top:1.5rem; padding:1rem; background:#f0f9ff; border:2px solid #bae6fd; border-radius:6px;">
@@ -135,6 +135,20 @@ window.showFormTambahProduk = () => {
     </div>
   `;
 
+  // Format thousand separator untuk harga jual
+  const hargaInput = document.getElementById('input-harga-jual');
+  if (hargaInput) {
+    hargaInput.addEventListener('input', (e) => {
+      let val = e.target.value.replace(/\D/g, '');
+      if (val === '') val = '0';
+      e.target.value = parseInt(val).toLocaleString('id-ID');
+    });
+    hargaInput.addEventListener('focus', (e) => {
+      let val = e.target.value.replace(/\D/g, '');
+      e.target.value = val === '0' ? '' : val;
+    });
+  }
+
   document.getElementById('form-produk').onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -144,8 +158,8 @@ window.showFormTambahProduk = () => {
         nama: form.nama.value.trim(),
         kategori: form.kategori.value.trim() || null,
         satuan: form.satuan.value,
-        hargaJual: form.hargaJual.value,
-        stokMin: form.stokMin.value || 0
+        hargaJual: parseInt(form.hargaJual.value.replace(/\D/g, '')),
+        stokMin: parseInt(form.stokMin.value) || 0
       });
       alert('✅ Produk berhasil ditambahkan');
       initProdukUI();
