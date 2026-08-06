@@ -13,17 +13,17 @@ async function renderLaporan() {
     <!-- Laporan Omzet & Profit -->
     <div class="card" style="margin-bottom:1.5rem;">
       <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit</h3>
-      <form id="form-rentang" style="display:flex; gap:8px; align-items:flex-end;">
-        <div style="flex:1;">
-          <label>Dari Tanggal</label>
-          <input type="date" name="dari" required>
+      <form id="form-rentang" style="display:grid; grid-template-columns:auto auto auto auto; gap:12px; align-items:end;">
+        <div>
+          <label style="font-size:13px; color:#64748b; margin-bottom:4px; display:block;">Dari Tanggal</label>
+          <input type="date" name="dari" required style="width:150px;">
         </div>
-        <div style="flex:1;">
-          <label>Sampai Tanggal</label>
-          <input type="date" name="sampai" required>
+        <div>
+          <label style="font-size:13px; color:#64748b; margin-bottom:4px; display:block;">Sampai Tanggal</label>
+          <input type="date" name="sampai" required style="width:150px;">
         </div>
-        <button type="submit" class="primary">Lihat Laporan</button>
-        <button type="button" class="secondary" onclick="window.laporanHariIni()">Hari Ini</button>
+        <button type="submit" class="primary" style="white-space:nowrap;">Lihat Laporan</button>
+        <button type="button" class="secondary" onclick="window.laporanHariIni()" style="white-space:nowrap;">Hari Ini</button>
       </form>
       <div id="hasil-laporan" class="mt-2"></div>
     </div>

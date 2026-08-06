@@ -149,6 +149,8 @@ async function renderPengaturan() {
 
   const container = document.querySelector('[data-panel="pengaturan"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
+    <div style="flex:1; overflow-y:auto;">
     <style>
       .accordion-section { margin-bottom: 1rem; }
       .accordion-header {
@@ -339,6 +341,8 @@ async function renderPengaturan() {
           </form>
         </div>
       </div>
+    </div>
+    </div>
     </div>
   `;
 

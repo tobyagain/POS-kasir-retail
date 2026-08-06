@@ -131,6 +131,8 @@ window.showFormTambahProduk = () => {
         </div>
       </form>
     </div>
+    </div>
+    </div>
   `;
 
   document.getElementById('form-produk').onsubmit = async (e) => {
@@ -159,11 +161,13 @@ window.editProduk = async (produkId) => {
 
   const container = document.querySelector('[data-panel="produk"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
       <button class="secondary" onclick="window.initProdukUI()">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Edit Produk: ${produk.nama}</h2>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     <div class="card" style="max-width:600px;">
       <form id="form-edit">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
@@ -225,6 +229,8 @@ window.editProduk = async (produkId) => {
           <button type="button" class="secondary" onclick="window.initProdukUI()">Batal</button>
         </div>
       </form>
+    </div>
+    </div>
     </div>
   `;
 

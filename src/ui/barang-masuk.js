@@ -15,11 +15,13 @@ async function renderList() {
   
   const container = document.querySelector('[data-panel="barang-masuk"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Riwayat Barang Masuk (${purchaseList.length})</h2>
       <button class="primary" onclick="window.showFormBarangMasuk()">+ Input Barang Masuk</button>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     ${purchaseList.length === 0 ? `
       <div class="card" style="text-align:center; padding:3rem; color:#64748b;">
         <div style="font-size:48px; margin-bottom:1rem;">📥</div>
@@ -50,6 +52,8 @@ async function renderList() {
         </tbody>
       </table>
     `}
+    </div>
+    </div>
   `;
 }
 
@@ -59,22 +63,24 @@ window.showFormBarangMasuk = async () => {
 
   const container = document.querySelector('[data-panel="barang-masuk"]');
   container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
       <button class="secondary" onclick="window.initBarangMasukUI()">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Input Barang Masuk</h2>
     </div>
 
+    <div style="flex:1; overflow-y:auto;">
     <div style="display:grid; grid-template-columns:1fr 400px; gap:1.5rem;">
       <!-- Kiri: Form Header + Add Item -->
       <div class="card">
         <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📋 Info Pembelian</h3>
         <div class="mb-1">
-          <label>Supplier <span class="text-red">*</span></label>
-          <input type="text" id="input-supplier" required placeholder="Nama supplier">
+          <label>Qty <span class="text-red">*</span></label>
+          <input type="text" id="input-qty" required placeholder="Jumlah barang">
         </div>
         <div class="mb-1">
-          <label>Catatan</label>
-          <textarea id="input-catatan" rows="2" placeholder="Opsional"></textarea>
+          <label>Harga Beli (Rp) <span class="text-red">*</span></label>
+          <input type="text" id="input-harga" required placeholder="Per unit">
         </div>
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e2e8f0;">
@@ -116,15 +122,38 @@ window.showFormBarangMasuk = async () => {
         </div>
       </div>
     </div>
+    </div>
+    </div>
   `;
 
   renderCart();
+  
+  // Format thousand separator untuk input qty & harga
+  const formatNumber = (input) => {
+    input.addEventListener('input', (e) => {
+      let val = e.target.value.replace(/\D/g, '');
+      if (val === '') val = '0';
+      e.target.value = parseInt(val).toLocaleString('id-ID');
+    });
+    input.addEventListener('focus', (e) => {
+      let val = e.target.value.replace(/\D/g, '');
+      e.target.value = val === '0' ? '' : val;
+    });
+  };
+  
+  const qtyInput = document.getElementById('input-qty');
+  const hargaInput = document.getElementById('input-harga');
+  if (qtyInput) formatNumber(qtyInput);
+  if (hargaInput) formatNumber(hargaInput);
 };
 
 window.tambahItem = () => {
   const produkId = document.getElementById('select-produk').value;
-  const qty = parseInt(document.getElementById('input-qty').value);
-  const hargaBeli = parseInt(document.getElementById('input-harga').value);
+  const qtyInput = document.getElementById('input-qty');
+  const hargaInput = document.getElementById('input-harga');
+  
+  const qty = parseInt(qtyInput.value.replace(/\D/g, ''));
+  const hargaBeli = parseInt(hargaInput.value.replace(/\D/g, ''));
 
   if (!produkId) {
     alert('Pilih produk');
@@ -152,8 +181,8 @@ window.tambahItem = () => {
 
   // Reset form item
   document.getElementById('select-produk').value = '';
-  document.getElementById('input-qty').value = '';
-  document.getElementById('input-harga').value = '';
+  qtyInput.value = '';
+  hargaInput.value = '';
 
   renderCart();
 };
