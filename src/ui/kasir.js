@@ -1,14 +1,17 @@
-// UI Kasir — Redesign: 2-tone Blue+Green, keyboard shortcuts
-import { cariByBarcode, cariByNama, listProduk } from '../services/productService.js';
-import { simpanPenjualan } from '../services/saleService.js';
+// UI Kasir — Redesign: 2-tone Blue+Green, keyboard shortcuts (PRD-POS-KEYBOARD-FLOW)
+import { cariByBarcode, listProduk } from '../services/productService.js';
+import { simpanPenjualan, listPenjualan } from '../services/saleService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
 import { cetakStruk } from '../services/printService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
+import { registerShortcut, focusElement } from './keyboardShortcuts.js';
 
 let keranjang = [];
 let shiftAktif = null;
 let produkList = [];
-let inputMode = 'barcode'; // 'barcode' | 'produk'
+let selectedResultIndex = -1;
+let activeCartIndex = -1;
+let lastSaleId = null;
 
 export async function initKasirUI() {
   shiftAktif = await getShiftTerbuka();
@@ -20,7 +23,7 @@ export async function initKasirUI() {
 
   produkList = await listProduk({ aktif: true });
   await renderKasir();
-  initShortcuts();
+  initKasirShortcuts();
 }
 
 function renderGuardShift() {
@@ -29,14 +32,10 @@ function renderGuardShift() {
     <div style="max-width:500px; margin:2rem auto; text-align:center; padding:2rem; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px;">
       <h2 class="text-red">⚠ Tidak Ada Shift Terbuka</h2>
       <p class="mt-1 text-gray">Buka shift dulu di tab <strong>Shift</strong> sebelum jualan.</p>
-      <button class="primary mt-2" onclick="window.goToShift()">Ke Tab Shift</button>
+      <button class="primary mt-2" data-action="goto-shift">Ke Tab Shift</button>
     </div>
   `;
 }
-
-window.goToShift = () => {
-  document.querySelector('[data-tab="shift"]').click();
-};
 
 async function renderKasir() {
   const container = document.querySelector('[data-panel="kasir"]');
@@ -52,30 +51,27 @@ async function renderKasir() {
         font-weight: 600;
         margin-left: 6px;
       }
-      /* Hide shortcuts hints on mobile/tablet (touch devices) */
       @media (hover: none) {
         .shortcut-hint { display: none; }
       }
-      .tab-btn-mode {
-        padding: 10px 20px;
-        border: none;
-        background: #e0f2fe;
-        color: #0284c7;
-        font-weight: 600;
-        cursor: pointer;
-        border-radius: 6px 6px 0 0;
+      .produk-row-active {
+        border-color: #0284c7 !important;
+        background: #f0f9ff !important;
       }
-      .tab-btn-mode.active {
-        background: #0284c7;
-        color: #fff;
+      .cart-row-active {
+        outline: 2px solid #0284c7;
+        outline-offset: -2px;
+      }
+      .inline-error {
+        background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626;
+        padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
       }
     </style>
 
     <div style="display:grid; grid-template-columns:1fr 420px; gap:16px; height:calc(100vh - 120px); padding:0;">
 
-      <!-- KIRI: PRODUK (LEBAR 60-70%) -->
+      <!-- KIRI: PRODUK -->
       <div style="display:flex; flex-direction:column; gap:12px;">
-        <!-- Search Produk -->
         <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
           <div style="padding:12px; background:#0284c7;">
             <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">🔍 CARI PRODUK</div>
@@ -90,30 +86,30 @@ async function renderKasir() {
               style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;"
               autofocus>
             <div style="font-size:11px; color:#64748b; margin-top:6px;">
-              <span class="shortcut-hint">F5</span> fokus input
+              <span class="shortcut-hint">Ctrl+K</span> fokus
+              <span class="shortcut-hint">Enter</span> tambah
+              <span class="shortcut-hint">↑↓</span> pilih
             </div>
           </div>
         </div>
 
-        <!-- Grid Produk (FULL HEIGHT) -->
         <div id="produk-panel" style="background:#fff; padding:12px; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
           <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
           <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
         </div>
 
-        <!-- Info Shift (bottom) -->
         <div style="background:#0284c7; color:#fff; padding:10px 12px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
           <span><strong>Shift:</strong> ${shiftAktif.kasir}</span>
-          <button class="secondary" onclick="window.showRiwayatPenjualan()" style="padding:6px 12px; background:#fff; color:#0284c7; border:none; border-radius:4px; font-size:11px; cursor:pointer;">
-            Riwayat <span style="font-size:10px; background:#0284c7; color:#fff; padding:2px 4px; border-radius:3px; margin-left:4px;">Ctrl+P</span>
+          <button class="secondary" data-action="riwayat" style="padding:6px 12px; background:#fff; color:#0284c7; border:none; border-radius:4px; font-size:11px; cursor:pointer;">
+            Riwayat <span style="font-size:10px; background:#0284c7; color:#fff; padding:2px 4px; border-radius:3px; margin-left:4px;">Ctrl+H</span>
           </button>
         </div>
       </div>
 
-      <!-- KANAN: KERANJANG + PAYMENT STACK (420px) -->
+      <!-- KANAN: KERANJANG + PEMBAYARAN -->
       <div style="display:flex; flex-direction:column; gap:12px;">
 
-        <!-- KERANJANG (flex:1 ambil space tersisa) -->
+        <!-- KERANJANG -->
         <div style="background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column; flex:1; min-height:0;">
           <h2 style="margin:0 0 12px 0; padding-bottom:12px; border-bottom:2px solid #e2e8f0; color:#0f172a; font-size:16px;">DAFTAR ITEM</h2>
 
@@ -121,7 +117,7 @@ async function renderKasir() {
 
           <div style="border-top:2px solid #e2e8f0; padding-top:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <span style="font-size:13px; color:#64748b; font-weight:600;">Diskon</span>
+              <span style="font-size:13px; color:#64748b; font-weight:600;">Diskon <span class="shortcut-hint">F7</span></span>
               <input type="text" id="input-diskon-nota" value="0" style="width:130px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px; font-size:14px;">
             </div>
             <div style="display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid #e2e8f0;">
@@ -131,45 +127,48 @@ async function renderKasir() {
           </div>
         </div>
 
-        <!-- PAYMENT (fixed height, compact) -->
+        <!-- PEMBAYARAN -->
         <div style="background:#fff; padding:14px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
           <h3 style="margin:0 0 10px 0; color:#0f172a; font-size:14px; font-weight:700;">PEMBAYARAN</h3>
 
-          <!-- Input Tunai -->
+          <div id="payment-error" style="display:none;" class="inline-error"></div>
+
           <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:6px; padding:10px; margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
               <span style="font-size:14px;">💵</span>
               <strong style="flex:1; font-size:12px;">TUNAI</strong>
-              <span class="shortcut-hint" style="font-size:10px; padding:2px 4px;">Alt+T</span>
+              <span class="shortcut-hint" style="font-size:10px; padding:2px 4px;">F8</span>
             </div>
             <div style="display:flex; gap:6px;">
-              <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:14px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:4px;" onkeypress="if(event.key==='Enter'){event.preventDefault();window.bayarTunai();}">
-              <button onclick="window.bayarTunai()" style="padding:10px 14px; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:700;">OK</button>
+              <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:14px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:4px;">
+              <button data-action="bayar-tunai" style="padding:10px 14px; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:700;">OK</button>
             </div>
           </div>
 
-          <!-- Tombol QRIS -->
-          <button onclick="window.bayarQRIS()" style="width:100%; padding:12px; font-size:13px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:10px;">
+          <button data-action="bayar-qris" style="width:100%; padding:12px; font-size:13px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:10px;">
             <span style="font-size:16px;">📱</span>
-            <span>QRIS</span>
+            <span>QRIS sisa</span>
             <span class="shortcut-hint" style="background:#fff; color:#0284c7; font-size:10px; padding:2px 4px;">Alt+Q</span>
           </button>
 
-          <!-- List Pembayaran -->
           <div id="pembayaran-list" style="margin-bottom:10px;"></div>
 
-          <!-- Kembalian -->
           <div id="kembalian-info" style="padding:10px; background:#d1fae5; border-radius:4px; font-size:13px; font-weight:700; margin-bottom:10px; display:none;">
             Kembalian: <span id="label-kembalian" style="color:#047857;">Rp 0</span>
           </div>
 
-          <!-- Tombol Bayar -->
-          <button onclick="window.selesaiBayar()" style="width:100%; padding:16px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">
-            BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857; font-size:10px; padding:2px 4px;">Ctrl+Z</span>
+          <div id="after-sale-actions" style="display:none; margin-bottom:10px;">
+            <button data-action="cetak-ulang" style="width:100%; padding:10px; background:#f59e0b; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px;">
+              ⚠ Cetak Ulang Struk
+            </button>
+          </div>
+
+          <button data-action="selesai-bayar" id="btn-bayar" style="width:100%; padding:16px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">
+            BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857; font-size:10px; padding:2px 4px;">Ctrl+Enter</span>
           </button>
 
-          <button onclick="window.resetKeranjang()" style="width:100%; padding:10px; margin-top:8px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
-            Reset
+          <button data-action="reset-keranjang" style="width:100%; padding:10px; margin-top:8px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
+            Transaksi Baru <span class="shortcut-hint" style="font-size:10px;">Ctrl+N</span>
           </button>
         </div>
 
@@ -178,91 +177,122 @@ async function renderKasir() {
     </div>
   `;
 
-  renderModeContent();
+  bindKasirEvents();
+  renderProdukGrid();
   renderKeranjang();
 
-  // Format thousand separator untuk input angka
   bindNumericInput(document.getElementById('input-diskon-nota'));
   bindNumericInput(document.getElementById('input-tunai'));
-
   document.getElementById('input-diskon-nota').addEventListener('input', hitungTotal);
 }
 
-window.switchMode = (mode) => {
-  // Legacy function - tidak dipakai lagi setelah merge
-};
+function bindKasirEvents() {
+  const panel = document.querySelector('[data-panel="kasir"]');
 
-function renderModeContent() {
-  // Search unified: barcode atau nama
+  // Event delegation semua tombol data-action
+  panel.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const index = btn.dataset.index !== undefined ? parseInt(btn.dataset.index) : null;
+
+    if (action === 'goto-shift') document.querySelector('[data-tab="shift"]').click();
+    if (action === 'riwayat') window.showRiwayatPenjualan();
+    if (action === 'bayar-tunai') bayarTunai();
+    if (action === 'bayar-qris') bayarQRIS();
+    if (action === 'selesai-bayar') selesaiBayar();
+    if (action === 'reset-keranjang') resetKeranjang();
+    if (action === 'cetak-ulang') cetakUlang();
+    if (action === 'hapus-pembayaran') hapusPembayaran(index);
+    if (action === 'hapus-item') hapusItem(index);
+    if (action === 'qty-minus') ubahQty(index, -1);
+    if (action === 'qty-plus') ubahQty(index, 1);
+    if (action === 'produk-row') {
+      const produk = produkList.find(p => p.id === btn.dataset.produkId);
+      if (produk) tambahKeKeranjangDanRefocus(produk);
+    }
+  });
+
+  // Search input
   const inputSearch = document.getElementById('input-search-produk');
-  if (inputSearch) {
-    inputSearch.addEventListener('input', (e) => {
-      const query = e.target.value.trim().toLowerCase();
-      renderProdukGrid(query);
-    });
+  inputSearch.addEventListener('input', () => {
+    selectedResultIndex = -1;
+    renderProdukGrid(inputSearch.value.trim().toLowerCase());
+  });
 
-    inputSearch.addEventListener('keypress', async (e) => {
-      if (e.key === 'Enter') {
-        const query = inputSearch.value.trim();
-        if (!query) return;
+  inputSearch.addEventListener('keydown', async (e) => {
+    const query = inputSearch.value.trim();
 
-        // Coba cari by barcode dulu (exact match)
-        const byBarcode = await cariByBarcode(query);
-        if (byBarcode) {
-          tambahKeKeranjang(byBarcode);
-          inputSearch.value = '';
-          renderProdukGrid();
-          return;
-        }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveResultSelection(1);
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveResultSelection(-1);
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      inputSearch.value = '';
+      selectedResultIndex = -1;
+      renderProdukGrid();
+      return;
+    }
+    if (e.key !== 'Enter' || !query) return;
 
-        // Kalau tidak ketemu barcode, cari by nama (fuzzy)
-        const byNama = produkList.find(p => p.nama.toLowerCase().includes(query));
-        if (byNama) {
-          tambahKeKeranjang(byNama);
-          inputSearch.value = '';
-          renderProdukGrid();
-        } else {
-          alert('Produk tidak ditemukan');
-        }
-      }
-    });
-  }
+    e.preventDefault();
 
-  renderProdukGrid();
+    // 1. Pilihan arrow aktif?
+    const rows = currentResultRows();
+    if (selectedResultIndex >= 0 && rows[selectedResultIndex]) {
+      const produk = produkList.find(p => p.id === rows[selectedResultIndex].dataset.produkId);
+      if (produk) { tambahKeKeranjangDanRefocus(produk); return; }
+    }
+
+    // 2. Barcode exact match
+    const byBarcode = await cariByBarcode(query);
+    if (byBarcode) { tambahKeKeranjangDanRefocus(byBarcode); return; }
+
+    // 3. Nama fuzzy, produk pertama
+    const q = query.toLowerCase();
+    const byNama = produkList.find(p =>
+      p.nama.toLowerCase().includes(q) || (p.barcode || '').toLowerCase().includes(q)
+    );
+    if (byNama) { tambahKeKeranjangDanRefocus(byNama); return; }
+
+    showInlineError('Produk tidak ditemukan', 'search');
+  });
+
+  // Enter di nominal tunai → tambah pembayaran
+  document.getElementById('input-tunai').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      bayarTunai();
+    }
+  });
 }
 
-function renderProdukGrid(searchQuery = '') {
-  const grid = document.getElementById('produk-grid');
-  if (!grid) return;
+function currentResultRows() {
+  return Array.from(document.querySelectorAll('#produk-grid [data-action="produk-row"]'));
+}
 
-  let filtered = produkList;
-  if (searchQuery) {
-    filtered = produkList.filter(p =>
-      p.nama.toLowerCase().includes(searchQuery) ||
-      (p.barcode && p.barcode.includes(searchQuery))
-    );
-  }
+function moveResultSelection(delta) {
+  const rows = currentResultRows();
+  if (rows.length === 0) return;
+  selectedResultIndex = (selectedResultIndex + delta + rows.length) % rows.length;
+  rows.forEach((r, i) => r.classList.toggle('produk-row-active', i === selectedResultIndex));
+  rows[selectedResultIndex].scrollIntoView({ block: 'nearest' });
+}
 
-  if (filtered.length === 0) {
-    grid.innerHTML = '<div class="text-gray">Tidak ada produk</div>';
-    return;
-  }
-
-  grid.innerHTML = filtered.slice(0, 50).map(p => `
-    <div onclick="window.tambahKeKeranjangById('${p.id}')"
-         style="padding:10px 12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.15s; margin-bottom:6px;"
-         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(3px)';"
-         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff'; this.style.transform='translateX(0)';">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <div style="flex:1; font-weight:700; font-size:14px; color:#0f172a; line-height:1.2;">${p.nama}</div>
-        <div style="font-weight:700; font-size:16px; color:#0284c7; margin-left:12px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-size:11px; color:#64748b;">Stok: <span style="font-weight:700; color:${p.stok > 10 ? '#059669' : p.stok > 0 ? '#f59e0b' : '#dc2626'}">${p.stok}</span></div>
-        ${p.barcode ? `<div style="font-size:10px; color:#94a3b8; font-family:monospace; background:#f8fafc; padding:2px 5px; border-radius:3px;">${p.barcode}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
+function tambahKeKeranjangDanRefocus(produk) {
+  tambahKeKeranjang(produk);
+  const inputSearch = document.getElementById('input-search-produk');
+  inputSearch.value = '';
+  selectedResultIndex = -1;
+  renderProdukGrid();
+  inputSearch.focus();
 }
 
 function tambahKeKeranjang(produk) {
@@ -281,30 +311,29 @@ function tambahKeKeranjang(produk) {
       subtotal: produk.hargaJual
     });
   }
+  activeCartIndex = keranjang.length - 1;
+  clearInlineError();
   renderKeranjang();
 }
 
-window.tambahKeKeranjangById = (produkId) => {
-  const produk = produkList.find(p => p.id === produkId);
-  if (!produk) return;
-  tambahKeKeranjang(produk);
-};
-
-window.ubahQty = (index, delta) => {
-  keranjang[index].qty += delta;
-  if (keranjang[index].qty <= 0) {
+function ubahQty(index, delta) {
+  const it = keranjang[index];
+  if (!it) return;
+  it.qty += delta;
+  if (it.qty <= 0) {
     keranjang.splice(index, 1);
   } else {
-    keranjang[index].subtotal = keranjang[index].qty * keranjang[index].hargaJualSnapshot - keranjang[index].diskonItem;
+    it.subtotal = it.qty * it.hargaJualSnapshot - it.diskonItem;
   }
   renderKeranjang();
-};
+}
 
-window.hapusItemKasir = (index) => {
-  if (!keranjang) return;
+function hapusItem(index) {
+  if (!keranjang[index]) return;
   keranjang.splice(index, 1);
+  if (activeCartIndex >= keranjang.length) activeCartIndex = keranjang.length - 1;
   renderKeranjang();
-};
+}
 
 function renderKeranjang() {
   const container = document.getElementById('keranjang-content');
@@ -313,7 +342,6 @@ function renderKeranjang() {
   if (keranjang.length === 0) {
     container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Keranjang kosong</div>';
   } else {
-    // Table header + rows
     container.innerHTML = `
       <table style="width:100%; border-collapse:collapse; font-size:13px;">
         <thead>
@@ -326,10 +354,10 @@ function renderKeranjang() {
         </thead>
         <tbody>
           ${keranjang.map((it, i) => `
-            <tr style="border-bottom:1px solid #f1f5f9;">
+            <tr data-cart-row="${i}" class="${i === activeCartIndex ? 'cart-row-active' : ''}" style="border-bottom:1px solid #f1f5f9;">
               <td style="padding:8px 4px;">
                 <div style="font-weight:600; color:#0f172a; margin-bottom:2px;">${it.nama}</div>
-                <input type="text" inputmode="numeric" data-action="harga" data-index="${i}" value="${it.hargaJualSnapshot.toLocaleString('id-ID')}" aria-label="Harga ${it.nama}" style="width:110px; padding:4px 6px; text-align:right; border:1px solid #cbd5e1; border-radius:4px; font-size:11px; color:#64748b;">
+                <input type="text" inputmode="numeric" data-harga-index="${i}" value="${it.hargaJualSnapshot.toLocaleString('id-ID')}" aria-label="Harga ${it.nama}" style="width:110px; padding:4px 6px; text-align:right; border:1px solid #cbd5e1; border-radius:4px; font-size:11px; color:#64748b;">
               </td>
               <td style="padding:8px 4px; text-align:center;">
                 <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
@@ -340,7 +368,7 @@ function renderKeranjang() {
               </td>
               <td data-total-item style="padding:8px 4px; text-align:right; font-weight:700; color:#0284c7;">${formatRupiah(it.subtotal)}</td>
               <td style="padding:8px 4px; text-align:center;">
-                <button data-action="hapus" data-index="${i}" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus">×</button>
+                <button data-action="hapus-item" data-index="${i}" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus (Delete)">×</button>
               </td>
             </tr>
           `).join('')}
@@ -349,95 +377,115 @@ function renderKeranjang() {
     `;
   }
 
-  container.querySelectorAll('[data-action="harga"]').forEach(input => {
+  container.querySelectorAll('[data-harga-index]').forEach(input => {
     bindNumericInput(input);
-    input.addEventListener('input', () => {
-      const index = Number(input.dataset.index);
+    const applyHarga = () => {
+      const index = Number(input.dataset.hargaIndex);
       const harga = readNumericInput(input);
       if (!Number.isSafeInteger(harga) || harga < 0) return;
       const item = keranjang[index];
+      if (!item) return;
       item.hargaJualSnapshot = harga;
       item.subtotal = item.qty * harga - item.diskonItem;
       const totalCell = input.closest('tr').querySelector('[data-total-item]');
       if (totalCell) totalCell.textContent = formatRupiah(item.subtotal);
       hitungTotal();
+    };
+    input.addEventListener('input', applyHarga);
+    input.addEventListener('focus', () => { setActiveCartRow(Number(input.dataset.hargaIndex)); });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyHarga();
+        // lanjut ke qty control item yang sama
+        const row = input.closest('tr');
+        row.querySelector('[data-action="qty-plus"]')?.focus();
+      }
     });
   });
 
   hitungTotal();
 }
 
-// Event delegation untuk keranjang (scoped ke kasir panel only)
-const kasirPanel = document.querySelector('[data-panel="kasir"]');
-if (kasirPanel) {
-  kasirPanel.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-    const index = parseInt(btn.dataset.index);
-
-    if (action === 'hapus') {
-      window.hapusItemKasir(index);
-    } else if (action === 'qty-minus') {
-      window.ubahQty(index, -1);
-    } else if (action === 'qty-plus') {
-      window.ubahQty(index, 1);
-    }
-  });
+function setActiveCartRow(i) {
+  activeCartIndex = i;
+  document.querySelectorAll('[data-cart-row]').forEach(r =>
+    r.classList.toggle('cart-row-active', Number(r.dataset.cartRow) === i)
+  );
 }
 
+// Pembayaran
 let pembayaranList = [];
 let paymentInProgress = false;
-let shortcutsInitialized = false;
 
-window.bayarTunai = () => {
+function showInlineError(msg, where = 'payment') {
+  clearInlineError();
+  if (where === 'payment') {
+    const el = document.getElementById('payment-error');
+    el.textContent = '⚠ ' + msg;
+    el.style.display = 'block';
+  } else {
+    // search error → pin di atas grid
+    const grid = document.getElementById('produk-grid');
+    const warn = document.createElement('div');
+    warn.id = 'search-error';
+    warn.className = 'inline-error';
+    warn.style.marginBottom = '8px';
+    warn.textContent = '⚠ ' + msg;
+    grid.prepend(warn);
+  }
+}
+
+function clearInlineError() {
+  const p = document.getElementById('payment-error');
+  if (p) { p.style.display = 'none'; p.textContent = ''; }
+  document.getElementById('search-error')?.remove();
+}
+
+function bayarTunai() {
   const inputTunai = document.getElementById('input-tunai');
-  const nominal = parseInt(inputTunai.value.replace(/\D/g, '')); // parse dari formatted string
+  const nominal = readNumericInput(inputTunai);
 
-  if (isNaN(nominal) || nominal <= 0) {
-    alert('Isi nominal tunai');
-    inputTunai.focus();
+  if (!Number.isSafeInteger(nominal) || nominal <= 0) {
+    showInlineError('Isi nominal tunai');
+    focusElement('#input-tunai');
     return;
   }
 
   const totalNetto = hitungTotalNetto();
-
   if (totalNetto <= 0) {
-    alert('Keranjang kosong atau total 0');
+    showInlineError('Keranjang kosong atau total 0');
+    focusElement('#input-search-produk');
     return;
   }
 
   pembayaranList.push({ metode: 'tunai', jumlah: nominal });
   inputTunai.value = '0';
+  clearInlineError();
   inputTunai.focus();
   renderPembayaran();
-};
+}
 
-window.bayarQRIS = () => {
+function bayarQRIS() {
   const totalNetto = hitungTotalNetto();
-
   if (totalNetto <= 0) {
-    alert('Keranjang kosong atau total 0');
+    showInlineError('Keranjang kosong atau total 0');
     return;
   }
-
-  const sudahBayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
-  const sisa = totalNetto - sudahBayar;
-
+  const sisa = totalNetto - pembayaranList.reduce((s, p) => s + p.jumlah, 0);
   if (sisa <= 0) {
-    alert('Sudah lunas');
+    showInlineError('Sudah lunas');
     return;
   }
-
   pembayaranList.push({ metode: 'qris', jumlah: sisa });
+  clearInlineError();
   renderPembayaran();
-};
+}
 
-window.hapusPembayaran = (index) => {
+function hapusPembayaran(index) {
   pembayaranList.splice(index, 1);
   renderPembayaran();
-};
+}
 
 function renderPembayaran() {
   const container = document.getElementById('pembayaran-list');
@@ -446,16 +494,16 @@ function renderPembayaran() {
 
   const totalNetto = hitungTotalNetto();
   const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
-  const kembalian = Math.max(0, dibayar - totalNetto);
+  const kembalian = hitungKembalian(dibayar, totalNetto, pembayaranList);
 
   if (pembayaranList.length > 0) {
     container.innerHTML = `
       <div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
         ${pembayaranList.map((p, i) => `
-          <div class="flex" style="justify-content:space-between; align-items:center; margin:4px 0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0;">
             <span style="font-weight:600; color:#475569;">${capitalize(p.metode)}</span>
             <span style="font-weight:700; color:#0f172a;">${formatRupiah(p.jumlah)}</span>
-            <button onclick="window.hapusPembayaran(${i})" style="padding:3px 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700;">×</button>
+            <button data-action="hapus-pembayaran" data-index="${i}" style="padding:3px 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700;">×</button>
           </div>
         `).join('')}
       </div>
@@ -474,36 +522,52 @@ function renderPembayaran() {
   hitungTotal();
 }
 
+// Kembalian hanya dari kelebihan uang tunai (QRIS pas, tidak dihitung)
+function hitungKembalian(dibayar, totalNetto, list) {
+  const kelebihan = dibayar - totalNetto;
+  if (kelebihan <= 0) return 0;
+  const totalTunai = list.filter(p => p.metode === 'tunai').reduce((s, p) => s + p.jumlah, 0);
+  return Math.min(kelebihan, totalTunai);
+}
+
 function hitungTotalNetto() {
   const subtotal = keranjang.reduce((sum, it) => sum + it.subtotal, 0);
-  const diskon = parseInt(document.getElementById('input-diskon-nota')?.value.replace(/\D/g, '') || 0);
+  const diskonEl = document.getElementById('input-diskon-nota');
+  const diskon = diskonEl ? readNumericInput(diskonEl) || 0 : 0;
   return Math.max(0, subtotal - diskon);
 }
 
 function hitungTotal() {
-  document.getElementById('label-total').textContent = formatRupiah(hitungTotalNetto());
+  const el = document.getElementById('label-total');
+  if (el) el.textContent = formatRupiah(hitungTotalNetto());
 }
 
-window.selesaiBayar = async () => {
-  if (paymentInProgress) return;
-  if (keranjang.length === 0) {
-    alert('Keranjang kosong');
-    return;
-  }
-  if (pembayaranList.length === 0) {
-    alert('Pilih metode bayar (Tunai/QRIS)');
-    return;
-  }
+// Validasi sebelum simpan — diekspor untuk test
+export function validateCheckout(items, pembayaran, totalNetto) {
+  if (!items || items.length === 0) return { ok: false, reason: 'keranjang-kosong' };
+  if (!pembayaran || pembayaran.length === 0) return { ok: false, reason: 'belum-bayar' };
+  const dibayar = pembayaran.reduce((s, p) => s + p.jumlah, 0);
+  if (dibayar < totalNetto) return { ok: false, reason: 'kurang-bayar', kurang: totalNetto - dibayar };
+  return { ok: true };
+}
 
-  const diskonNota = parseInt(document.getElementById('input-diskon-nota').value.replace(/\D/g, '') || 0);
+async function selesaiBayar() {
+  if (paymentInProgress) return;
+
+  const diskonEl = document.getElementById('input-diskon-nota');
+  const diskonNota = diskonEl ? readNumericInput(diskonEl) || 0 : 0;
   const total = hitungTotalNetto();
-  const dibayar = pembayaranList.reduce((sum, p) => sum + p.jumlah, 0);
-  if (dibayar < total) {
-    alert(`Kurang bayar: ${formatRupiah(total - dibayar)}`);
+
+  const v = validateCheckout(keranjang, pembayaranList, total);
+  if (!v.ok) {
+    if (v.reason === 'keranjang-kosong') { showInlineError('Keranjang kosong'); focusElement('#input-search-produk'); }
+    else if (v.reason === 'belum-bayar') { showInlineError('Belum ada pembayaran — isi tunai atau QRIS'); focusElement('#input-tunai'); }
+    else if (v.reason === 'kurang-bayar') { showInlineError(`Kurang bayar ${formatRupiah(v.kurang)}`); focusElement('#input-tunai'); }
     return;
   }
 
   paymentInProgress = true;
+  setBtnBayarDisabled(true);
   try {
     await simpanPenjualan({
       shiftId: shiftAktif.id,
@@ -513,76 +577,118 @@ window.selesaiBayar = async () => {
       kasir: shiftAktif.kasir
     });
 
-    const { listPenjualan } = await import('../services/saleService.js');
     const sales = await listPenjualan({ shiftId: shiftAktif.id });
-    if (sales[0]) await cetakStruk(sales[0]);
+    lastSaleId = sales[0]?.id || null;
+
+    // Cetak. Gagal cetak TIDAK membatalkan transaksi; tawarkan cetak ulang.
+    let cetakGagal = false;
+    if (lastSaleId) {
+      try {
+        await cetakStruk(sales[0]);
+      } catch (err) {
+        console.error('Cetak gagal:', err);
+        cetakGagal = true;
+      }
+    }
+
     resetKeranjang();
+    if (cetakGagal) {
+      document.getElementById('after-sale-actions').style.display = 'block';
+      showInlineError('Transaksi tersimpan, tapi cetak gagal. Gunakan Cetak Ulang.');
+    }
   } catch (err) {
-    alert('Gagal: ' + err.message);
+    showInlineError('Gagal simpan: ' + err.message);
   } finally {
     paymentInProgress = false;
+    setBtnBayarDisabled(false);
   }
-};
+}
 
-window.resetKeranjang = () => {
+function setBtnBayarDisabled(v) {
+  const btn = document.getElementById('btn-bayar');
+  if (btn) { btn.disabled = v; btn.style.opacity = v ? '0.5' : '1'; }
+}
+
+async function cetakUlang() {
+  if (!lastSaleId) return;
+  try {
+    const { getPenjualan } = await import('../services/saleService.js');
+    const sale = await getPenjualan(lastSaleId);
+    if (sale) {
+      await cetakStruk(sale);
+      document.getElementById('after-sale-actions').style.display = 'none';
+      clearInlineError();
+    }
+  } catch (err) {
+    showInlineError('Cetak ulang gagal: ' + err.message);
+  }
+}
+
+function resetKeranjang() {
   keranjang = [];
   pembayaranList = [];
+  activeCartIndex = -1;
   const diskonInput = document.getElementById('input-diskon-nota');
   if (diskonInput) diskonInput.value = '0';
-
-  // Fix: elemen yang benar setelah merge unified search
   const searchInput = document.getElementById('input-search-produk');
   if (searchInput) {
     searchInput.value = '';
     searchInput.focus();
   }
-
+  clearInlineError();
   renderProdukGrid();
   renderKeranjang();
   renderPembayaran();
-};
+}
 
-// Keyboard Shortcuts
-function initShortcuts() {
-  if (shortcutsInitialized) return;
-  shortcutsInitialized = true;
-  document.addEventListener('keydown', (e) => {
-    // F5 - Fokus input search produk
-    if (e.key === 'F5') {
-      e.preventDefault();
-      document.getElementById('input-search-produk')?.focus();
-    }
+// Shortcut lokal kasir — didaftarkan sekali, difilter per tab
+let kasirShortcutReady = false;
+function initKasirShortcuts() {
+  if (kasirShortcutReady) return;
+  kasirShortcutReady = true;
+  const T = 'kasir';
 
-    // Ctrl+F - Cari produk
-    if (e.ctrlKey && e.key === 'f') {
-      e.preventDefault();
-      document.getElementById('input-search-produk')?.focus();
-    }
+  registerShortcut('f6', () => {
+    if (keranjang.length === 0) { showInlineError('Keranjang kosong'); return false; }
+    const i = Math.max(0, keranjang.length - 1);
+    setActiveCartRow(i);
+    focusElement(`[data-harga-index="${i}"]`);
+  }, { tab: T, allowInInput: true });
 
-    // Ctrl+P - Riwayat (reprint)
-    if (e.ctrlKey && e.key === 'p') {
-      e.preventDefault();
-      window.showRiwayatPenjualan();
-    }
+  registerShortcut('alt+arrowleft', () => {
+    if (activeCartIndex >= 0) ubahQty(activeCartIndex, -1);
+  }, { tab: T, allowInInput: true });
 
-    // Ctrl+Z - Bayar
-    if (e.ctrlKey && e.key === 'z') {
-      e.preventDefault();
-      window.selesaiBayar();
-    }
+  registerShortcut('alt+arrowright', () => {
+    if (activeCartIndex >= 0) ubahQty(activeCartIndex, 1);
+  }, { tab: T, allowInInput: true });
 
-    // Alt+T - Fokus input tunai (tidak ganggu ketik produk)
-    if (e.altKey && (e.key === 't' || e.key === 'T')) {
-      e.preventDefault();
-      document.getElementById('input-tunai')?.focus();
-    }
+  registerShortcut('delete', () => {
+    if (activeCartIndex >= 0 && keranjang[activeCartIndex]) hapusItem(activeCartIndex);
+  }, { tab: T });
 
-    // Alt+Q - Bayar QRIS pas (tidak ganggu ketik produk)
-    if (e.altKey && (e.key === 'q' || e.key === 'Q')) {
-      e.preventDefault();
-      window.bayarQRIS();
-    }
-  });
+  registerShortcut('f7', () => focusElement('#input-diskon-nota'), { tab: T, allowInInput: true });
+  registerShortcut('f8', () => focusElement('#input-tunai'), { tab: T, allowInInput: true });
+
+  registerShortcut('alt+q', () => bayarQRIS(), { tab: T, allowInInput: true });
+
+  registerShortcut('alt+backspace', () => {
+    if (pembayaranList.length > 0) hapusPembayaran(pembayaranList.length - 1);
+  }, { tab: T, allowInInput: true });
+
+  registerShortcut('ctrl+enter', () => selesaiBayar(), { tab: T, allowInInput: true });
+
+  registerShortcut('ctrl+n', () => resetKeranjang(), { tab: T, allowInInput: true });
+
+  registerShortcut('ctrl+h', () => window.showRiwayatPenjualan(), { tab: T, allowInInput: true });
+
+  registerShortcut('escape', (e) => {
+    // Kalau fokus di luar search: kembalikan ke search. Di search: bersihkan.
+    const search = document.getElementById('input-search-produk');
+    if (document.activeElement === search) return false; // biar handler input yang urus
+    clearInlineError();
+    focusElement('#input-search-produk');
+  }, { tab: T });
 }
 
 function formatRupiah(n) {
@@ -593,4 +699,5 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// Stub lama yang masih direferensikan riwayat-penjualan.js dkk — aman dihapus setelah cek.
 window.initKasirUI = initKasirUI;
