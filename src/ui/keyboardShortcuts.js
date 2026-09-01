@@ -38,6 +38,7 @@ export function clearShortcuts() {
 }
 
 export function getActiveTab() {
+  if (typeof document === 'undefined') return null;
   return document.querySelector('.tab-btn.active')?.dataset.tab || null;
 }
 

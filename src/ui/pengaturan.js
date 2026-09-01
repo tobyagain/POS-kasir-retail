@@ -3,9 +3,13 @@ import { getByKey, put } from '../data/db.js';
 import { pairBluetoothPrinter } from '../services/printService.js';
 import { exportDatabase, importDatabase } from '../services/reportService.js';
 import { autoArchiveOldData, restoreArchive } from '../services/archiveService.js';
+import { registerShortcut } from './keyboardShortcuts.js';
+
+let pengaturanShortcutReady = false;
 
 export async function initPengaturanUI() {
   await renderPengaturan();
+  initPengaturanShortcuts();
 }
 
 window.pairPrinterBluetooth = async () => {
@@ -379,6 +383,27 @@ async function renderPengaturan() {
     await put('meta', { key: 'resetStrukBulanan', value: form.resetStrukBulanan.checked });
     alert('✅ Pengaturan disimpan');
   };
+}
+
+// Shortcut pengaturan
+function initPengaturanShortcuts() {
+  if (pengaturanShortcutReady) return;
+  pengaturanShortcutReady = true;
+  const T = 'pengaturan';
+
+  registerShortcut('ctrl+b', () => { window.exportBackup(); }, { tab: T, allowInInput: true });
+  registerShortcut('ctrl+shift+r', () => { window.importBackup(); }, { tab: T, allowInInput: true });
+
+  const openSection = (id) => {
+    const content = document.getElementById(`content-${id}`);
+    if (!content) return false;
+    if (!content.classList.contains('open')) window.toggleAccordion(id);
+    content.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    return true;
+  };
+
+  registerShortcut('p', () => openSection('printer') || false, { tab: T });
+  registerShortcut('a', () => openSection('arsip') || false, { tab: T });
 }
 
 window.initPengaturanUI = initPengaturanUI;

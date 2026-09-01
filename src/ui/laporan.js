@@ -1,8 +1,13 @@
 // UI Laporan — Blue theme redesign (final tab!)
 import { laporanOmzetProfit, laporanProdukTerlaris, laporanStokMenurun } from '../services/reportService.js';
+import { registerShortcut, focusElement } from './keyboardShortcuts.js';
+
+let laporanShortcutReady = false;
+let lastRange = null; // {dari, sampai}
 
 export async function initLaporanUI() {
   await renderLaporan();
+  initLaporanShortcuts();
 }
 
 async function renderLaporan() {
@@ -25,7 +30,7 @@ async function renderLaporan() {
           <input type="date" name="sampai" required style="width:150px;">
         </div>
         <button type="submit" class="primary" style="white-space:nowrap;">Lihat Laporan</button>
-        <button type="button" class="secondary" onclick="window.laporanHariIni()" style="white-space:nowrap;">Hari Ini</button>
+        <button type="button" class="secondary" onclick="window.laporanHariIni()" style="white-space:nowrap;">Hari Ini (T)</button>
       </form>
       <div id="hasil-laporan" class="mt-2"></div>
     </div>
@@ -57,6 +62,7 @@ async function renderLaporan() {
     const form = e.target;
     const dari = new Date(form.dari.value).setHours(0, 0, 0, 0);
     const sampai = new Date(form.sampai.value).setHours(23, 59, 59, 999);
+    lastRange = { dari, sampai };
 
     await loadLaporanOmzet(dari, sampai);
     await loadProdukTerlaris(dari, sampai);
@@ -190,6 +196,46 @@ async function loadStokMenurun() {
 
 function formatRupiah(n) {
   return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+}
+
+// Shortcut laporan
+function initLaporanShortcuts() {
+  if (laporanShortcutReady) return;
+  laporanShortcutReady = true;
+  const T = 'laporan';
+
+  registerShortcut('t', () => {
+    if (!document.getElementById('form-rentang')) return false;
+    window.laporanHariIni();
+  }, { tab: T });
+
+  registerShortcut('r', () => {
+    const form = document.getElementById('form-rentang');
+    if (!form) return false;
+    if (form.dari.value && form.sampai.value) form.requestSubmit();
+    else window.laporanHariIni();
+  }, { tab: T });
+
+  registerShortcut('ctrl+e', async () => {
+    // Export backup DB (fitur yang ada di Pengaturan, tidak ada export laporan tersendiri)
+    const { exportDatabase } = await import('../services/reportService.js');
+    const backup = await exportDatabase();
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `pos-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }, { tab: T, allowInInput: true });
+
+  registerShortcut('escape', () => {
+    const hasil = document.getElementById('hasil-laporan');
+    if (hasil && hasil.innerHTML.trim()) {
+      hasil.innerHTML = '';
+      return true;
+    }
+    return false;
+  }, { tab: T });
 }
 
 window.initLaporanUI = initLaporanUI;

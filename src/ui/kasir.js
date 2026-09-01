@@ -5,6 +5,7 @@ import { getShiftTerbuka } from '../services/shiftService.js';
 import { cetakStruk } from '../services/printService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
 import { registerShortcut, focusElement } from './keyboardShortcuts.js';
+import { validateCheckout, hitungKembalianTunai } from '../core/checkout.js';
 
 let keranjang = [];
 let shiftAktif = null;
@@ -524,10 +525,7 @@ function renderPembayaran() {
 
 // Kembalian hanya dari kelebihan uang tunai (QRIS pas, tidak dihitung)
 function hitungKembalian(dibayar, totalNetto, list) {
-  const kelebihan = dibayar - totalNetto;
-  if (kelebihan <= 0) return 0;
-  const totalTunai = list.filter(p => p.metode === 'tunai').reduce((s, p) => s + p.jumlah, 0);
-  return Math.min(kelebihan, totalTunai);
+  return hitungKembalianTunai(list, totalNetto);
 }
 
 function hitungTotalNetto() {
@@ -542,15 +540,7 @@ function hitungTotal() {
   if (el) el.textContent = formatRupiah(hitungTotalNetto());
 }
 
-// Validasi sebelum simpan — diekspor untuk test
-export function validateCheckout(items, pembayaran, totalNetto) {
-  if (!items || items.length === 0) return { ok: false, reason: 'keranjang-kosong' };
-  if (!pembayaran || pembayaran.length === 0) return { ok: false, reason: 'belum-bayar' };
-  const dibayar = pembayaran.reduce((s, p) => s + p.jumlah, 0);
-  if (dibayar < totalNetto) return { ok: false, reason: 'kurang-bayar', kurang: totalNetto - dibayar };
-  return { ok: true };
-}
-
+// Validasi sebelum simpan — dari core agar bisa dites tanpa DOM
 async function selesaiBayar() {
   if (paymentInProgress) return;
 
