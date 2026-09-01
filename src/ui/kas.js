@@ -63,7 +63,13 @@ async function renderKas(shift) {
     <div style="display:grid; grid-template-columns:400px 1fr; gap:1.5rem;">
       <!-- Kiri: Form Catat -->
       <div class="card">
-        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📝 Catat Kas Masuk/Keluar <span style="font-size:11px; color:#64748b; font-weight:400;">(I=Masuk, O=Keluar, Ctrl+Enter=Simpan)</span></h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📝 Catat Kas Masuk/Keluar
+          <span style="font-size:11px; color:#64748b; font-weight:400; display:block; margin-top:2px;">
+            <span class="shortcut-hint">I</span> masuk
+            <span class="shortcut-hint">O</span> keluar
+            <span class="shortcut-hint">Ctrl+Enter</span> simpan
+          </span>
+        </h3>
         <form id="form-cashflow">
           <div class="mb-1">
             <label>Jenis <span class="text-red">*</span></label>

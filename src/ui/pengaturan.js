@@ -223,7 +223,7 @@ async function renderPengaturan() {
     <!-- Printer & Laci -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('printer')">
-        <h2>🖨️ Printer & Laci Kas</h2>
+        <h2>🖨️ Printer & Laci Kas<span class="shortcut-hint">P</span></h2>
         <span class="accordion-arrow" id="arrow-printer">▼</span>
       </div>
       <div class="accordion-content" id="content-printer">
@@ -271,7 +271,7 @@ async function renderPengaturan() {
     <!-- Backup & Restore -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('backup')">
-        <h2>💾 Backup & Restore</h2>
+        <h2>💾 Backup & Restore<span class="shortcut-hint">Ctrl+B</span><span class="shortcut-hint">Ctrl+Shift+R</span></h2>
         <span class="accordion-arrow" id="arrow-backup">▼</span>
       </div>
       <div class="accordion-content" id="content-backup">
@@ -298,7 +298,7 @@ async function renderPengaturan() {
     <!-- Arsip Data Lama (NEW) -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('arsip')">
-        <h2>🗄️ Arsip Data Lama</h2>
+        <h2>📦 Arsip Data<span class="shortcut-hint">A</span></h2>
         <span class="accordion-arrow" id="arrow-arsip">▼</span>
       </div>
       <div class="accordion-content" id="content-arsip">

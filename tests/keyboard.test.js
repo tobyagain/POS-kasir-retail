@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 import { matchKey, registerShortcut, clearShortcuts, shortcutHandler } from '../src/ui/keyboardShortcuts.js';
 import { validateCheckout, hitungKembalianTunai } from '../src/core/checkout.js';
+import { _format, readNumericInput } from '../src/ui/numeric-input.js';
 
 const fakeEvent = (key, { ctrl = false, alt = false, shift = false, target = null } = {}) => ({
   key,
@@ -115,4 +116,23 @@ test('validateCheckout: lebih bayar OK (kembalian)', () => {
 test('validateCheckout mencegah transaksi ganda: hasil sama untuk input sama (idempoten check di UI)', () => {
   const args = [[{ subtotal: 5000 }], [{ metode: 'qris', jumlah: 5000 }], 5000];
   assert.deepEqual(validateCheckout(...args), validateCheckout(...args));
+});
+
+// ===== numeric-input (separator id-ID) =====
+
+test('_format: sesuai separator Indonesia (titik ribuan)', () => {
+  assert.equal(_format(''), '');
+  assert.equal(_format('0'), '0');
+  assert.equal(_format('100'), '100');
+  assert.equal(_format('1000'), '1.000');
+  assert.equal(_format('150000'), '150.000');
+  assert.equal(_format('1234567'), '1.234.567');
+});
+
+test('readNumericInput: buang separator & non-digit', () => {
+  assert.equal(readNumericInput({ value: '150.000' }), 150000);
+  assert.equal(readNumericInput({ value: '1.234.567' }), 1234567);
+  assert.equal(readNumericInput({ value: 'Rp 150.000,-' }), 150000);
+  assert.equal(readNumericInput({ value: '' }), 0);
+  assert.equal(readNumericInput(null), 0);
 });

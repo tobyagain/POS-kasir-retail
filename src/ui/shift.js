@@ -28,7 +28,12 @@ async function renderFormBuka() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="flex:1; overflow-y:auto;">
     <div class="card" style="max-width:500px; margin:0 auto;">
-      <h2 style="color:#0284c7; margin-bottom:1.5rem;">Buka Shift Baru</h2>
+      <h2 style="color:#0284c7; margin-bottom:1.5rem;">Buka Shift Baru
+        <span style="font-size:11px; color:#64748b; font-weight:400; display:block; margin-top:4px;">
+          <span class="shortcut-hint">B</span> fokus kasir
+          <span class="shortcut-hint">Ctrl+Enter</span> buka shift
+        </span>
+      </h2>
       <form id="form-buka-shift">
         <div class="mb-1">
           <label>Nama Kasir <span class="text-red">*</span></label>
@@ -222,7 +227,12 @@ async function renderShiftAktif(shift) {
 
     <!-- Tutup Shift -->
     <div class="card" style="margin-top:1.5rem; background:#fef3c7; border:2px solid #f59e0b;">
-      <h3 style="color:#92400e; margin-bottom:1rem;">⚠️ Tutup Shift</h3>
+      <h3 style="color:#92400e; margin-bottom:1rem;">⚠️ Tutup Shift
+        <span style="font-size:11px; color:#92400e; font-weight:400; display:block; margin-top:2px;">
+          <span class="shortcut-hint">C</span> fokus kas fisik
+          <span class="shortcut-hint">Ctrl+Enter</span> tutup shift
+        </span>
+      </h3>
       <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
         <div style="font-size:13px; color:#64748b; margin-bottom:8px;">PREVIEW PENUTUPAN</div>
         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
@@ -235,7 +245,8 @@ async function renderShiftAktif(shift) {
       <form id="form-tutup-shift" style="display:flex; gap:1rem; align-items:flex-end;">
         <div style="flex:1;">
           <label>Kas Fisik (Hitung Manual) <span class="text-red">*</span></label>
-          <input type="text" inputmode="numeric" name="kasFisik" required placeholder="${formatRupiah(kasSistem)}" style="font-size:16px; font-weight:700;">
+          <input type="text" inputmode="numeric" name="kasFisik" required placeholder="0" style="font-size:16px; font-weight:700;">
+          <div style="font-size:11px; color:#64748b; margin-top:4px;">Kas sistem saat ini: <strong style="color:#0284c7;">${formatRupiah(kasSistem)}</strong></div>
         </div>
         <button type="submit" class="primary" style="padding:14px 32px; background:#dc2626;" id="btn-tutup-shift">Tutup Shift (Ctrl+Enter)</button>
       </form>

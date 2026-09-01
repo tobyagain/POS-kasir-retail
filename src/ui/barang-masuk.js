@@ -25,7 +25,7 @@ async function renderList() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Riwayat Barang Masuk (${purchaseList.length})</h2>
-      <button class="primary" onclick="window.showFormBarangMasuk()">+ Input Barang Masuk</button>
+      <button class="primary" onclick="window.showFormBarangMasuk()">+ Input Barang Masuk<span class="shortcut-hint" style="background:#fff;">N</span></button>
     </div>
 
     <div style="flex:1; overflow-y:auto;">
@@ -93,7 +93,14 @@ window.showFormBarangMasuk = async () => {
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e2e8f0;">
 
-        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">➕ Tambah Item</h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">➕ Tambah Item
+          <span style="font-size:11px; color:#64748b; font-weight:400; margin-left:8px;">
+            <span class="shortcut-hint">Ctrl+K</span> cari produk
+            <span class="shortcut-hint">Enter</span> pilih/tambah
+            <span class="shortcut-hint">Ctrl+Enter</span> simpan barang masuk
+            <span class="shortcut-hint">Esc</span> batal
+          </span>
+        </h3>
         <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; margin-bottom:1rem;">
           <div>
             <label>Cari Produk <span class="text-red">*</span></label>

@@ -85,19 +85,6 @@ async function renderKasir() {
   const container = document.querySelector('[data-panel="kasir"]');
   container.innerHTML = `
     <style>
-      .shortcut-hint {
-        display: inline-block;
-        background: #e0f2fe;
-        color: #0284c7;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-left: 6px;
-      }
-      @media (hover: none) {
-        .shortcut-hint { display: none; }
-      }
       .produk-row-active {
         border-color: #0284c7 !important;
         background: #f0f9ff !important;

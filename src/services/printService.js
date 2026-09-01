@@ -35,58 +35,60 @@ export async function cetakStruk(sale) {
 
 function cetakViaBrowser(doc, width) {
   const html = renderHTML(doc, width);
-  
+
   // Buka popup window (bukan new tab)
   const win = window.open('', 'PrintWindow', 'width=800,height=600,scrollbars=yes');
   if (!win) {
     alert('⚠️ Popup diblok. Izinkan popup untuk cetak.');
     return;
   }
-  
+
   win.document.write(html);
   win.document.close();
-  
-  // Auto print + close
-  win.onload = () => {
-    // Trigger print
-    win.print();
-    
+
+  let closed = false;
+  const safeClose = () => {
+    if (closed || win.closed) return;
+    closed = true;
+    try { win.close(); } catch (_) {}
+  };
+
+  const triggerPrintAndWatch = () => {
+    // Jangan double-trigger (terpanggil dua kali via onload + fallback timeout)
+    if (triggerPrintAndWatch._done) return;
+    triggerPrintAndWatch._done = true;
+
+    try { win.focus(); win.print(); } catch (_) {}
+
     // Strategy 1: onafterprint (Chrome/Edge/Firefox modern)
-    let closed = false;
-    win.onafterprint = () => {
-      if (!closed) {
-        closed = true;
-        setTimeout(() => win.close(), 100);
-      }
-    };
-    
-    // Strategy 2: matchMedia listener (fallback)
+    win.onafterprint = () => setTimeout(safeClose, 100);
+
+    // Strategy 2: matchMedia listener (fallback ketika onafterprint tidak ada/tidak fire)
     if (win.matchMedia) {
       const mediaQueryList = win.matchMedia('print');
       const handler = (mql) => {
-        if (!mql.matches && !closed) {
-          closed = true;
-          setTimeout(() => win.close(), 100);
-        }
+        if (!mql.matches) setTimeout(safeClose, 100);
       };
-      
-      // Modern API
       if (mediaQueryList.addEventListener) {
         mediaQueryList.addEventListener('change', handler);
-      } else {
-        // Legacy API
+      } else if (mediaQueryList.addListener) {
         mediaQueryList.addListener(handler);
       }
     }
-    
-    // Strategy 3: Force close after 2 seconds (aggressive fallback)
-    // User sudah klik Print/Cancel di dialog, 2s cukup
-    setTimeout(() => {
-      if (!closed && !win.closed) {
-        win.close();
-      }
-    }, 2000);
+
+    // Strategy 3: hard fallback — tutup paksa setelah 5 detik apapun yang terjadi.
+    // Cukup lama untuk user klik Print/Cancel, cukup pendek supaya popup tidak menggantung.
+    setTimeout(safeClose, 5000);
   };
+
+  // Kalau dokumen sudah complete (load cepat), langsung trigger; kalau belum, tunggu onload
+  if (win.document.readyState === 'complete') {
+    triggerPrintAndWatch();
+  } else {
+    win.onload = triggerPrintAndWatch;
+    // Fallback kalau onload tak pernah fire
+    setTimeout(triggerPrintAndWatch, 800);
+  }
 }
 
 async function cetakViaESCPOS(doc, width, drawerEnabled) {

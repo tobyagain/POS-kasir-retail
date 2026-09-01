@@ -19,7 +19,14 @@ async function renderLaporan() {
       <div style="flex:1; overflow-y:auto;">
         <!-- Laporan Omzet & Profit -->
     <div class="card" style="margin-bottom:1.5rem;">
-      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit</h3>
+      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💰 Laporan Omzet & Profit
+        <span style="font-size:11px; color:#64748b; font-weight:400; display:block; margin-top:2px;">
+          <span class="shortcut-hint">T</span> hari ini
+          <span class="shortcut-hint">R</span> muat ulang
+          <span class="shortcut-hint">Ctrl+E</span> export
+          <span class="shortcut-hint">Esc</span> bersih
+        </span>
+      </h3>
       <form id="form-rentang" style="display:grid; grid-template-columns:auto auto auto auto; gap:12px; align-items:end;">
         <div>
           <label style="font-size:13px; color:#64748b; margin-bottom:4px; display:block;">Dari Tanggal</label>
@@ -30,7 +37,7 @@ async function renderLaporan() {
           <input type="date" name="sampai" required style="width:150px;">
         </div>
         <button type="submit" class="primary" style="white-space:nowrap;">Lihat Laporan</button>
-        <button type="button" class="secondary" onclick="window.laporanHariIni()" style="white-space:nowrap;">Hari Ini (T)</button>
+        <button type="button" class="secondary" onclick="window.laporanHariIni()" style="white-space:nowrap;">Hari Ini<span class="shortcut-hint">T</span></button>
       </form>
       <div id="hasil-laporan" class="mt-2"></div>
     </div>

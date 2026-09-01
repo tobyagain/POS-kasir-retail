@@ -22,10 +22,18 @@ async function renderList() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Daftar Produk (<span id="produk-count">${produkList.length}</span>)</h2>
-      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk <span style="font-size:10px; background:#fff; color:#0284c7; padding:2px 4px; border-radius:3px; margin-left:4px;">N</span></button>
+      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk<span class="shortcut-hint" style="background:#fff;">N</span></button>
     </div>
     <div style="margin-bottom:1rem;">
-      <input type="text" id="input-cari-produk" placeholder="Cari produk... (/)" style="width:100%; padding:10px; border:2px solid #0284c7; border-radius:6px;">
+      <input type="text" id="input-cari-produk" placeholder="Cari produk..." style="width:100%; padding:10px; border:2px solid #0284c7; border-radius:6px;">
+      <div style="font-size:11px; color:#64748b; margin-top:4px;">
+        <span class="shortcut-hint">/</span> fokus
+        <span class="shortcut-hint">Ctrl+K</span> fokus
+        <span class="shortcut-hint">↑↓</span> pilih
+        <span class="shortcut-hint">Enter</span> edit
+        <span class="shortcut-hint">Ctrl+Enter</span> simpan
+        <span class="shortcut-hint">Esc</span> batal
+      </div>
     </div>
 
     <div style="flex:1; overflow-y:auto;" id="produk-list-wrap">

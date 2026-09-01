@@ -222,3 +222,19 @@ tr:hover {
   background: #dbeafe;
   color: #1e40af;
 }
+
+/* Shortcut hint — hanya tampil di desktop */
+.shortcut-hint {
+  display: inline-block;
+  background: #e0f2fe;
+  color: #0284c7;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+@media (hover: none) {
+  .shortcut-hint { display: none; }
+}
