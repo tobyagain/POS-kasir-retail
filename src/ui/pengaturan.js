@@ -271,7 +271,7 @@ async function renderPengaturan() {
     <!-- Backup & Restore -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('backup')">
-        <h2>💾 Backup & Restore<span class="shortcut-hint">Ctrl+B</span><span class="shortcut-hint">Ctrl+Shift+R</span></h2>
+        <h2>💾 Backup & Restore<span class="shortcut-hint">Ctrl+Shift+B</span><span class="shortcut-hint">Ctrl+Shift+R</span></h2>
         <span class="accordion-arrow" id="arrow-backup">▼</span>
       </div>
       <div class="accordion-content" id="content-backup">
@@ -391,7 +391,7 @@ function initPengaturanShortcuts() {
   pengaturanShortcutReady = true;
   const T = 'pengaturan';
 
-  registerShortcut('ctrl+b', () => { window.exportBackup(); }, { tab: T, allowInInput: true });
+  registerShortcut('ctrl+shift+b', () => { window.exportBackup(); }, { tab: T, allowInInput: true });
   registerShortcut('ctrl+shift+r', () => { window.importBackup(); }, { tab: T, allowInInput: true });
 
   const openSection = (id) => {

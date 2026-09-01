@@ -199,7 +199,7 @@ async function renderKasir() {
           </button>
 
           <button data-action="reset-keranjang" style="width:100%; padding:10px; margin-top:8px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
-            Transaksi Baru <span class="shortcut-hint" style="font-size:10px;">Ctrl+N</span>
+            Transaksi Baru <span class="shortcut-hint" style="font-size:10px;">Ctrl+B</span>
           </button>
         </div>
 
@@ -307,6 +307,41 @@ function bindKasirEvents() {
 
 function currentResultRows() {
   return Array.from(document.querySelectorAll('#produk-grid [data-action="produk-row"]'));
+}
+
+// Render grid produk — filter by query (lowercase), max 50 item
+function renderProdukGrid(searchQuery = '') {
+  const grid = document.getElementById('produk-grid');
+  if (!grid) return;
+
+  let filtered = produkList;
+  if (searchQuery) {
+    filtered = produkList.filter(p =>
+      p.nama.toLowerCase().includes(searchQuery) ||
+      (p.barcode && p.barcode.includes(searchQuery))
+    );
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="text-gray">Tidak ada produk</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.slice(0, 50).map(p => `
+    <div data-action="produk-row" data-produk-id="${p.id}"
+         style="padding:10px 12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.15s; margin-bottom:6px;"
+         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(3px)';"
+         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff'; this.style.transform='translateX(0)';">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div style="flex:1; font-weight:700; font-size:14px; color:#0f172a; line-height:1.2;">${p.nama}</div>
+        <div style="font-weight:700; font-size:16px; color:#0284c7; margin-left:12px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:11px; color:#64748b;">Stok: <span style="font-weight:700; color:${p.stok > 10 ? '#059669' : p.stok > 0 ? '#f59e0b' : '#dc2626'}">${p.stok}</span></div>
+        ${p.barcode ? `<div style="font-size:10px; color:#94a3b8; font-family:monospace; background:#f8fafc; padding:2px 5px; border-radius:3px;">${p.barcode}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
 }
 
 function moveResultSelection(delta) {
@@ -698,7 +733,7 @@ function initKasirShortcuts() {
 
   registerShortcut('ctrl+enter', () => selesaiBayar(), { tab: T, allowInInput: true });
 
-  registerShortcut('ctrl+n', () => resetKeranjang(), { tab: T, allowInInput: true });
+  registerShortcut('ctrl+b', () => resetKeranjang(), { tab: T, allowInInput: true });
 
   registerShortcut('ctrl+h', () => window.showRiwayatPenjualan(), { tab: T, allowInInput: true });
 
