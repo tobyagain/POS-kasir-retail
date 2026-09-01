@@ -9,22 +9,7 @@ import { initShiftUI } from './ui/shift.js';
 import { initKasUI } from './ui/kas.js';
 import { initLaporanUI } from './ui/laporan.js';
 import { initPengaturanUI } from './ui/pengaturan.js';
-import { initKeyboardShortcuts, bindTabNavigation, focusElement, registerShortcut, getActiveTab } from './ui/keyboardShortcuts.js';
-
-// Mapping tab -> search/aksi utama untuk Ctrl+K
-const TAB_FOCUS = {
-  'kasir': '#input-search-produk',
-  'produk': '#input-cari-produk',
-  'barang-masuk': '#input-cari-produk',
-};
-
-function focusTabMain(target) {
-  const sel = TAB_FOCUS[target];
-  if (sel && focusElement(sel)) return;
-  // fallback: fokus input pertama yang terlihat di panel aktif
-  const panel = document.querySelector(`[data-panel="${target}"]`);
-  panel?.querySelector('input:not([type=hidden]):not([readonly]), textarea, select')?.focus();
-}
+import { initKeyboardShortcuts, bindTabNavigation, registerShortcut, focusElement } from './ui/keyboardShortcuts.js';
 
 // Tab routing
 function initTabs() {
@@ -70,7 +55,8 @@ function initTabs() {
     initTabs();
     initKeyboardShortcuts();
     bindTabNavigation();
-    registerShortcut('ctrl+k', () => { focusTabMain(getActiveTab()); }, { allowInInput: true });
+    // Ctrl+K hanya bermakna di kasir (fokus search produk)
+    registerShortcut('ctrl+k', () => { focusElement('#input-search-produk'); }, { tab: 'kasir', allowInInput: true });
 
     // Load default tab (Kasir untuk Tahap 2)
     initKasirUI();

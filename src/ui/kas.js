@@ -2,10 +2,6 @@
 import { catatCashflow, listCashflow, KATEGORI } from '../services/cashflowService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
-import { registerShortcut, focusElement } from './keyboardShortcuts.js';
-
-let kasView = 'main'; // 'main'
-let kasShortcutReady = false;
 
 export async function initKasUI() {
   const shiftAktif = await getShiftTerbuka();
@@ -16,7 +12,6 @@ export async function initKasUI() {
   }
 
   await renderKas(shiftAktif);
-  initKasShortcuts();
 }
 
 function renderGuardShift() {
@@ -63,13 +58,7 @@ async function renderKas(shift) {
     <div style="display:grid; grid-template-columns:400px 1fr; gap:1.5rem;">
       <!-- Kiri: Form Catat -->
       <div class="card">
-        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📝 Catat Kas Masuk/Keluar
-          <span style="font-size:11px; color:#64748b; font-weight:400; display:block; margin-top:2px;">
-            <span class="shortcut-hint">I</span> masuk
-            <span class="shortcut-hint">O</span> keluar
-            <span class="shortcut-hint">Ctrl+Enter</span> simpan
-          </span>
-        </h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">📝 Catat Kas Masuk/Keluar</h3>
         <form id="form-cashflow">
           <div class="mb-1">
             <label>Jenis <span class="text-red">*</span></label>
@@ -203,33 +192,6 @@ function formatWaktu(ts) {
     hour: '2-digit', 
     minute: '2-digit' 
   });
-}
-
-// Shortcut kas
-function initKasShortcuts() {
-  if (kasShortcutReady) return;
-  kasShortcutReady = true;
-  const T = 'kas';
-
-  registerShortcut('i', () => {
-    const sel = document.getElementById('select-jenis');
-    if (!sel) return false;
-    sel.value = 'masuk';
-    sel.dispatchEvent(new Event('change', { bubbles: true }));
-    focusElement('#select-jenis');
-  }, { tab: T });
-
-  registerShortcut('o', () => {
-    const sel = document.getElementById('select-jenis');
-    if (!sel) return false;
-    sel.value = 'keluar';
-    sel.dispatchEvent(new Event('change', { bubbles: true }));
-    focusElement('#select-jenis');
-  }, { tab: T });
-
-  registerShortcut('ctrl+enter', () => {
-    document.getElementById('form-cashflow')?.requestSubmit();
-  }, { tab: T, allowInInput: true });
 }
 
 window.initKasUI = initKasUI;

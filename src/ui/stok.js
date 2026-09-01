@@ -2,17 +2,9 @@
 import { listProduk } from '../services/productService.js';
 import { opnameStok, riwayatMutasi, produkMenurun } from '../services/stockService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
-import { registerShortcut, focusElement } from './keyboardShortcuts.js';
-
-let stokView = 'main'; // 'main' | 'opname' | 'mutasi'
-let stokShortcutReady = false;
-let opnameRowIndex = -1;
-let opnameProdukCache = [];
 
 export async function initStokUI() {
-  stokView = 'main';
   await renderMain();
-  initStokShortcuts();
 }
 
 async function renderMain() {
@@ -24,7 +16,7 @@ async function renderMain() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📊 Kelola Stok</h2>
-      <button class="primary" onclick="window.showOpnameStok()">Opname Stok<span class="shortcut-hint" style="background:#fff;">O</span></button>
+      <button class="primary" onclick="window.showOpnameStok()">Opname Stok</button>
     </div>
 
     ${menipis.length > 0 ? `
@@ -81,10 +73,7 @@ async function renderMain() {
 }
 
 window.showOpnameStok = async () => {
-  stokView = 'opname';
-  opnameRowIndex = -1;
   const produkList = await listProduk({ aktif: true });
-  opnameProdukCache = produkList;
   
   // Get last opname date for each product
   const lastOpname = {};
@@ -99,13 +88,7 @@ window.showOpnameStok = async () => {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
       <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
-      <h2 style="color:#0284c7; margin:0;">Opname Stok
-        <span style="font-size:11px; color:#64748b; font-weight:400; margin-left:8px;">
-          <span class="shortcut-hint">↑↓</span> pilih baris
-          <span class="shortcut-hint">Enter</span> simpan baris
-          <span class="shortcut-hint">Esc</span> kembali
-        </span>
-      </h2>
+      <h2 style="color:#0284c7; margin:0;">Opname Stok</h2>
     </div>
 
     <div style="flex:1; overflow-y:auto;">
@@ -130,8 +113,8 @@ window.showOpnameStok = async () => {
           </tr>
         </thead>
         <tbody>
-          ${produkList.map((p, i) => `
-            <tr id="row-${p.id}" data-opname-row="${i}" data-produk-id="${p.id}" data-stok="${p.stok}">
+          ${produkList.map(p => `
+            <tr id="row-${p.id}">
               <td style="font-weight:600; color:#0f172a;">${p.nama}</td>
               <td class="text-right">
                 <span class="badge badge-info">${p.stok} ${p.satuan}</span>
@@ -201,7 +184,6 @@ window.simpanOpname = async (produkId, stokLama) => {
 };
 
 window.lihatMutasi = async (produkId, namaProduk) => {
-  stokView = 'mutasi';
   const mutasi = await riwayatMutasi(produkId);
 
   const container = document.querySelector('[data-panel="stok"]');
@@ -267,54 +249,6 @@ function formatTanggal(ts) {
     hour: '2-digit',
     minute: '2-digit'
   });
-}
-
-// Shortcut stok
-function initStokShortcuts() {
-  if (stokShortcutReady) return;
-  stokShortcutReady = true;
-  const T = 'stok';
-
-  registerShortcut('o', () => {
-    if (stokView !== 'main') return false;
-    window.showOpnameStok();
-  }, { tab: T });
-
-  registerShortcut('arrowdown', () => {
-    if (stokView !== 'opname') return false;
-    moveOpnameRow(1);
-  }, { tab: T });
-
-  registerShortcut('arrowup', () => {
-    if (stokView !== 'opname') return false;
-    moveOpnameRow(-1);
-  }, { tab: T });
-
-  registerShortcut('enter', () => {
-    if (stokView !== 'opname') return false;
-    if (opnameRowIndex < 0) return false;
-    const p = opnameProdukCache[opnameRowIndex];
-    if (p) window.simpanOpname(p.id, p.stok);
-  }, { tab: T });
-
-  registerShortcut('escape', () => {
-    if (stokView === 'opname' || stokView === 'mutasi') {
-      initStokUI();
-    } else return false;
-  }, { tab: T });
-}
-
-function moveOpnameRow(delta) {
-  const rows = Array.from(document.querySelectorAll('[data-opname-row]'));
-  if (rows.length === 0) return;
-  if (opnameRowIndex === -1 && delta === -1) opnameRowIndex = 0; // wrap dari atas ke pertama
-  opnameRowIndex = (opnameRowIndex + delta + rows.length) % rows.length;
-  rows.forEach(r => r.style.background = '');
-  const row = rows[opnameRowIndex];
-  row.style.background = '#f0f9ff';
-  row.scrollIntoView({ block: 'nearest' });
-  const produkId = row.dataset.produkId;
-  focusElement(`#input-${CSS.escape(produkId)}`);
 }
 
 window.initStokUI = initStokUI;

@@ -1,17 +1,12 @@
 // UI Produk — list, tambah, edit (Blue theme redesign)
 import { listProduk, buatProduk, updateProduk, nonaktifkanProduk } from '../services/productService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
-import { registerShortcut, focusElement } from './keyboardShortcuts.js';
 
 let produkList = [];
 let selectedRowIndex = -1;
-let produkShortcutReady = false;
-let currentView = 'list'; // 'list' | 'form'
 
 export async function initProdukUI() {
-  currentView = 'list';
   await renderList();
-  initProdukShortcuts();
 }
 
 async function renderList() {
@@ -22,18 +17,10 @@ async function renderList() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Daftar Produk (<span id="produk-count">${produkList.length}</span>)</h2>
-      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk<span class="shortcut-hint" style="background:#fff;">N</span></button>
+      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk</button>
     </div>
     <div style="margin-bottom:1rem;">
       <input type="text" id="input-cari-produk" placeholder="Cari produk..." style="width:100%; padding:10px; border:2px solid #0284c7; border-radius:6px;">
-      <div style="font-size:11px; color:#64748b; margin-top:4px;">
-        <span class="shortcut-hint">/</span> fokus
-        <span class="shortcut-hint">Ctrl+K</span> fokus
-        <span class="shortcut-hint">↑↓</span> pilih
-        <span class="shortcut-hint">Enter</span> edit
-        <span class="shortcut-hint">Ctrl+Enter</span> simpan
-        <span class="shortcut-hint">Esc</span> batal
-      </div>
     </div>
 
     <div style="flex:1; overflow-y:auto;" id="produk-list-wrap">
@@ -106,10 +93,7 @@ function bindProdukListEvents() {
     else if (e.key === 'Enter') {
       e.preventDefault();
       const target = selectedRowIndex >= 0 && rows[selectedRowIndex] ? rows[selectedRowIndex] : rows[0];
-      if (target) {
-        currentView = 'form';
-        window.editProduk(target.dataset.produkId);
-      }
+      if (target) window.editProduk(target.dataset.produkId);
     }
     else if (e.key === 'Escape') {
       e.preventDefault();
@@ -123,7 +107,6 @@ function bindProdukListEvents() {
   document.getElementById('produk-tbody')?.addEventListener('click', (e) => {
     const tr = e.target.closest('[data-produk-row]');
     if (!tr || e.target.closest('button')) return;
-    currentView = 'form';
     window.editProduk(tr.dataset.produkId);
   });
 }
@@ -153,43 +136,7 @@ function filterProdukRows(q) {
   if (label) label.textContent = count;
 }
 
-// Shortcut tab produk — didaftarkan sekali
-function initProdukShortcuts() {
-  if (produkShortcutReady) return;
-  produkShortcutReady = true;
-  const T = 'produk';
-
-  registerShortcut('n', () => {
-    if (currentView !== 'list') return false;
-    currentView = 'form';
-    window.showFormTambahProduk();
-  }, { tab: T });
-
-  registerShortcut('/', () => {
-    if (currentView !== 'list') return false;
-    focusElement('#input-cari-produk');
-  }, { tab: T });
-
-  registerShortcut('ctrl+enter', () => {
-    if (currentView !== 'form') return false;
-    document.getElementById('form-produk')?.requestSubmit();
-    document.getElementById('form-edit')?.requestSubmit();
-  }, { tab: T, allowInInput: true });
-
-  registerShortcut('escape', () => {
-    if (currentView === 'form') {
-      currentView = 'list';
-      initProdukUI();
-    } else {
-      const input = document.getElementById('input-cari-produk');
-      if (input && input.value) { input.value = ''; filterProdukRows(''); }
-      else return false;
-    }
-  }, { tab: T });
-}
-
 window.showFormTambahProduk = () => {
-  currentView = 'form';
   const container = document.querySelector('[data-panel="produk"]');
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
@@ -281,7 +228,6 @@ window.showFormTambahProduk = () => {
 };
 
 window.editProduk = async (produkId) => {
-  currentView = 'form';
   const produk = produkList.find(p => p.id === produkId);
   if (!produk) return;
 

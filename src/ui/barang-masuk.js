@@ -2,19 +2,14 @@
 import { simpanBarangMasuk, listBarangMasuk } from '../services/purchaseService.js';
 import { listProduk } from '../services/productService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
-import { registerShortcut, focusElement } from './keyboardShortcuts.js';
 
 let purchaseList = [];
 let produkOptions = [];
 let itemsCart = [];
 let selectedProdukId = '';
-let bmView = 'list'; // 'list' | 'form'
-let bmShortcutReady = false;
 
 export async function initBarangMasukUI() {
-  bmView = 'list';
   await renderList();
-  initBarangMasukShortcuts();
 }
 
 async function renderList() {
@@ -25,7 +20,7 @@ async function renderList() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Riwayat Barang Masuk (${purchaseList.length})</h2>
-      <button class="primary" onclick="window.showFormBarangMasuk()">+ Input Barang Masuk<span class="shortcut-hint" style="background:#fff;">N</span></button>
+      <button class="primary" onclick="window.showFormBarangMasuk()">+ Input Barang Masuk</button>
     </div>
 
     <div style="flex:1; overflow-y:auto;">
@@ -65,7 +60,6 @@ async function renderList() {
 }
 
 window.showFormBarangMasuk = async () => {
-  bmView = 'form';
   produkOptions = await listProduk({ aktif: true });
   itemsCart = [];
 
@@ -93,14 +87,7 @@ window.showFormBarangMasuk = async () => {
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e2e8f0;">
 
-        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">➕ Tambah Item
-          <span style="font-size:11px; color:#64748b; font-weight:400; margin-left:8px;">
-            <span class="shortcut-hint">Ctrl+K</span> cari produk
-            <span class="shortcut-hint">Enter</span> pilih/tambah
-            <span class="shortcut-hint">Ctrl+Enter</span> simpan barang masuk
-            <span class="shortcut-hint">Esc</span> batal
-          </span>
-        </h3>
+        <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">➕ Tambah Item</h3>
         <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; margin-bottom:1rem;">
           <div>
             <label>Cari Produk <span class="text-red">*</span></label>
@@ -325,30 +312,6 @@ function formatTanggal(ts) {
     month: 'short', 
     year: 'numeric' 
   });
-}
-
-// Shortcut barang masuk
-function initBarangMasukShortcuts() {
-  if (bmShortcutReady) return;
-  bmShortcutReady = true;
-  const T = 'barang-masuk';
-
-  registerShortcut('n', () => {
-    if (bmView !== 'list') return false;
-    window.showFormBarangMasuk();
-  }, { tab: T });
-
-  registerShortcut('ctrl+enter', () => {
-    if (bmView !== 'form') return false;
-    window.simpanBarangMasuk();
-  }, { tab: T, allowInInput: true });
-
-  registerShortcut('escape', () => {
-    if (bmView === 'form') {
-      bmView = 'list';
-      initBarangMasukUI();
-    } else return false;
-  }, { tab: T });
 }
 
 window.initBarangMasukUI = initBarangMasukUI;

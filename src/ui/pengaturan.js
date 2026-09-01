@@ -3,13 +3,9 @@ import { getByKey, put } from '../data/db.js';
 import { pairBluetoothPrinter } from '../services/printService.js';
 import { exportDatabase, importDatabase } from '../services/reportService.js';
 import { autoArchiveOldData, restoreArchive } from '../services/archiveService.js';
-import { registerShortcut } from './keyboardShortcuts.js';
-
-let pengaturanShortcutReady = false;
 
 export async function initPengaturanUI() {
   await renderPengaturan();
-  initPengaturanShortcuts();
 }
 
 window.pairPrinterBluetooth = async () => {
@@ -223,7 +219,7 @@ async function renderPengaturan() {
     <!-- Printer & Laci -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('printer')">
-        <h2>🖨️ Printer & Laci Kas<span class="shortcut-hint">P</span></h2>
+        <h2>🖨️ Printer & Laci Kas</h2>
         <span class="accordion-arrow" id="arrow-printer">▼</span>
       </div>
       <div class="accordion-content" id="content-printer">
@@ -271,7 +267,7 @@ async function renderPengaturan() {
     <!-- Backup & Restore -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('backup')">
-        <h2>💾 Backup & Restore<span class="shortcut-hint">Ctrl+Shift+B</span><span class="shortcut-hint">Ctrl+Shift+R</span></h2>
+        <h2>💾 Backup & Restore</h2>
         <span class="accordion-arrow" id="arrow-backup">▼</span>
       </div>
       <div class="accordion-content" id="content-backup">
@@ -298,7 +294,7 @@ async function renderPengaturan() {
     <!-- Arsip Data Lama (NEW) -->
     <div class="accordion-section">
       <div class="accordion-header" onclick="window.toggleAccordion('arsip')">
-        <h2>📦 Arsip Data<span class="shortcut-hint">A</span></h2>
+        <h2>📦 Arsip Data</h2>
         <span class="accordion-arrow" id="arrow-arsip">▼</span>
       </div>
       <div class="accordion-content" id="content-arsip">
@@ -383,27 +379,6 @@ async function renderPengaturan() {
     await put('meta', { key: 'resetStrukBulanan', value: form.resetStrukBulanan.checked });
     alert('✅ Pengaturan disimpan');
   };
-}
-
-// Shortcut pengaturan
-function initPengaturanShortcuts() {
-  if (pengaturanShortcutReady) return;
-  pengaturanShortcutReady = true;
-  const T = 'pengaturan';
-
-  registerShortcut('ctrl+shift+b', () => { window.exportBackup(); }, { tab: T, allowInInput: true });
-  registerShortcut('ctrl+shift+r', () => { window.importBackup(); }, { tab: T, allowInInput: true });
-
-  const openSection = (id) => {
-    const content = document.getElementById(`content-${id}`);
-    if (!content) return false;
-    if (!content.classList.contains('open')) window.toggleAccordion(id);
-    content.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    return true;
-  };
-
-  registerShortcut('p', () => openSection('printer') || false, { tab: T });
-  registerShortcut('a', () => openSection('arsip') || false, { tab: T });
 }
 
 window.initPengaturanUI = initPengaturanUI;
