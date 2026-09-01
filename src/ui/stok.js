@@ -301,13 +301,14 @@ function initStokShortcuts() {
 function moveOpnameRow(delta) {
   const rows = Array.from(document.querySelectorAll('[data-opname-row]'));
   if (rows.length === 0) return;
+  if (opnameRowIndex === -1 && delta === -1) opnameRowIndex = 0; // wrap dari atas ke pertama
   opnameRowIndex = (opnameRowIndex + delta + rows.length) % rows.length;
   rows.forEach(r => r.style.background = '');
   const row = rows[opnameRowIndex];
   row.style.background = '#f0f9ff';
   row.scrollIntoView({ block: 'nearest' });
   const produkId = row.dataset.produkId;
-  focusElement(`#input-${produkId}`);
+  focusElement(`#input-${CSS.escape(produkId)}`);
 }
 
 window.initStokUI = initStokUI;

@@ -102,7 +102,7 @@ async function renderKasir() {
         <div style="background:#0284c7; color:#fff; padding:10px 12px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
           <span><strong>Shift:</strong> ${shiftAktif.kasir}</span>
           <button class="secondary" data-action="riwayat" style="padding:6px 12px; background:#fff; color:#0284c7; border:none; border-radius:4px; font-size:11px; cursor:pointer;">
-            Riwayat <span style="font-size:10px; background:#0284c7; color:#fff; padding:2px 4px; border-radius:3px; margin-left:4px;">Ctrl+H</span>
+            Riwayat <span class="shortcut-hint">Ctrl+H</span>
           </button>
         </div>
       </div>

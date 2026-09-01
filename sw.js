@@ -1,5 +1,5 @@
 // Service Worker — cache offline
-const CACHE_NAME = 'pos-retail-v20260806-4';
+const CACHE_NAME = 'pos-retail-v20260901-1';
 
 // Detect base path (GitHub Pages = /repo-name/, localhost = /)
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '/');
@@ -36,7 +36,10 @@ const ASSETS = [
   `${BASE}src/ui/kas.js`,
   `${BASE}src/ui/laporan.js`,
   `${BASE}src/ui/pengaturan.js`,
-  `${BASE}src/ui/riwayat-penjualan.js`
+  `${BASE}src/ui/riwayat-penjualan.js`,
+  `${BASE}src/ui/keyboardShortcuts.js`,
+  `${BASE}src/ui/numeric-input.js`,
+  `${BASE}src/core/checkout.js`
 ];
 
 // Install — cache semua file
@@ -61,8 +64,22 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Fetch — cache-first strategy
+// Fetch — network-first untuk JS module (hindari stale saat dev), cache-first lainnya
 self.addEventListener('fetch', (e) => {
+  const url = new URL(e.request.url);
+  const isJS = url.pathname.endsWith('.js');
+
+  if (isJS) {
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(e.request, copy));
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then((cached) => {
       return cached || fetch(e.request);
