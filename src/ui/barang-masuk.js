@@ -2,14 +2,19 @@
 import { simpanBarangMasuk, listBarangMasuk } from '../services/purchaseService.js';
 import { listProduk } from '../services/productService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
+import { registerShortcut, focusElement } from './keyboardShortcuts.js';
 
 let purchaseList = [];
 let produkOptions = [];
 let itemsCart = [];
 let selectedProdukId = '';
+let bmView = 'list'; // 'list' | 'form'
+let bmShortcutReady = false;
 
 export async function initBarangMasukUI() {
+  bmView = 'list';
   await renderList();
+  initBarangMasukShortcuts();
 }
 
 async function renderList() {
@@ -60,6 +65,7 @@ async function renderList() {
 }
 
 window.showFormBarangMasuk = async () => {
+  bmView = 'form';
   produkOptions = await listProduk({ aktif: true });
   itemsCart = [];
 
@@ -145,8 +151,19 @@ window.showFormBarangMasuk = async () => {
   cariInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const exact = produkOptions.find(p => p.barcode === cariInput.value.trim());
-      if (exact) pilihProduk(exact);
+      const q = cariInput.value.trim();
+      // Exact barcode dulu, lalu hasil pertama
+      const exact = produkOptions.find(p => p.barcode === q);
+      if (exact) { pilihProduk(exact); return; }
+      const first = produkOptions.find(p =>
+        p.nama.toLowerCase().includes(q.toLowerCase()) || (p.barcode || '').toLowerCase().includes(q.toLowerCase())
+      );
+      if (first) pilihProduk(first);
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      cariInput.value = '';
+      hasilCari.innerHTML = '';
     }
   });
   hasilCari.addEventListener('click', (e) => {
@@ -301,6 +318,30 @@ function formatTanggal(ts) {
     month: 'short', 
     year: 'numeric' 
   });
+}
+
+// Shortcut barang masuk
+function initBarangMasukShortcuts() {
+  if (bmShortcutReady) return;
+  bmShortcutReady = true;
+  const T = 'barang-masuk';
+
+  registerShortcut('n', () => {
+    if (bmView !== 'list') return false;
+    window.showFormBarangMasuk();
+  }, { tab: T });
+
+  registerShortcut('ctrl+enter', () => {
+    if (bmView !== 'form') return false;
+    window.simpanBarangMasuk();
+  }, { tab: T, allowInInput: true });
+
+  registerShortcut('escape', () => {
+    if (bmView === 'form') {
+      bmView = 'list';
+      initBarangMasukUI();
+    } else return false;
+  }, { tab: T });
 }
 
 window.initBarangMasukUI = initBarangMasukUI;

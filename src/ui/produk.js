@@ -1,11 +1,17 @@
 // UI Produk — list, tambah, edit (Blue theme redesign)
 import { listProduk, buatProduk, updateProduk, nonaktifkanProduk } from '../services/productService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
+import { registerShortcut, focusElement } from './keyboardShortcuts.js';
 
 let produkList = [];
+let selectedRowIndex = -1;
+let produkShortcutReady = false;
+let currentView = 'list'; // 'list' | 'form'
 
 export async function initProdukUI() {
+  currentView = 'list';
   await renderList();
+  initProdukShortcuts();
 }
 
 async function renderList() {
@@ -14,12 +20,15 @@ async function renderList() {
   const container = document.querySelector('[data-panel="produk"]');
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-      <h2 style="color:#0284c7; margin:0;">📦 Daftar Produk (${produkList.length})</h2>
-      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <h2 style="color:#0284c7; margin:0;">📦 Daftar Produk (<span id="produk-count">${produkList.length}</span>)</h2>
+      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk <span style="font-size:10px; background:#fff; color:#0284c7; padding:2px 4px; border-radius:3px; margin-left:4px;">N</span></button>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <input type="text" id="input-cari-produk" placeholder="Cari produk... (/)" style="width:100%; padding:10px; border:2px solid #0284c7; border-radius:6px;">
     </div>
 
-    <div style="flex:1; overflow-y:auto;">
+    <div style="flex:1; overflow-y:auto;" id="produk-list-wrap">
     ${produkList.length === 0 ? `
       <div class="card" style="text-align:center; padding:3rem; color:#64748b;">
         <div style="font-size:48px; margin-bottom:1rem;">📦</div>
@@ -40,9 +49,9 @@ async function renderList() {
             <th>Aksi</th>
           </tr>
         </thead>
-        <tbody>
-          ${produkList.map(p => `
-            <tr>
+        <tbody id="produk-tbody">
+          ${produkList.map((p, i) => `
+            <tr data-produk-row="${i}" data-produk-id="${p.id}" style="cursor:pointer;">
               <td><span class="badge badge-info">${p.barcode || '-'}</span></td>
               <td style="font-weight:600; color:#0f172a;">${p.nama}</td>
               <td style="color:#64748b;">${p.kategori || '-'}</td>
@@ -55,8 +64,8 @@ async function renderList() {
                 </span>
               </td>
               <td>
-                <button class="secondary" style="padding:6px 12px; font-size:12px;" onclick="window.editProduk('${p.id}')">Edit</button>
-                <button class="secondary" style="padding:6px 12px; font-size:12px; background:#fee2e2; color:#dc2626; border-color:#dc2626;" onclick="window.hapusProduk('${p.id}')">Hapus</button>
+                <button class="secondary" style="padding:6px 12px; font-size:12px;" onclick="event.stopPropagation(); window.editProduk('${p.id}')">Edit</button>
+                <button class="secondary" style="padding:6px 12px; font-size:12px; background:#fee2e2; color:#dc2626; border-color:#dc2626;" onclick="event.stopPropagation(); window.hapusProduk('${p.id}')">Hapus</button>
               </td>
             </tr>
           `).join('')}
@@ -66,9 +75,113 @@ async function renderList() {
     </div>
     </div>
   `;
+
+  bindProdukListEvents();
+}
+
+// Filter + interaksi list
+function bindProdukListEvents() {
+  const input = document.getElementById('input-cari-produk');
+  if (!input) return;
+
+  selectedRowIndex = -1;
+
+  input.addEventListener('input', () => {
+    selectedRowIndex = -1;
+    filterProdukRows(input.value.trim().toLowerCase());
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const rows = visibleProdukRows();
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveRowSelection(rows, 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveRowSelection(rows, -1); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const target = selectedRowIndex >= 0 && rows[selectedRowIndex] ? rows[selectedRowIndex] : rows[0];
+      if (target) {
+        currentView = 'form';
+        window.editProduk(target.dataset.produkId);
+      }
+    }
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      input.value = '';
+      selectedRowIndex = -1;
+      filterProdukRows('');
+    }
+  });
+
+  // Klik baris = edit (bukan lewat onclick inline)
+  document.getElementById('produk-tbody')?.addEventListener('click', (e) => {
+    const tr = e.target.closest('[data-produk-row]');
+    if (!tr || e.target.closest('button')) return;
+    currentView = 'form';
+    window.editProduk(tr.dataset.produkId);
+  });
+}
+
+function visibleProdukRows() {
+  return Array.from(document.querySelectorAll('#produk-tbody [data-produk-row]'))
+    .filter(r => r.style.display !== 'none');
+}
+
+function moveRowSelection(rows, delta) {
+  if (rows.length === 0) return;
+  selectedRowIndex = (selectedRowIndex + delta + rows.length) % rows.length;
+  rows.forEach((r) => r.style.background = '');
+  const row = rows[selectedRowIndex];
+  row.style.background = '#f0f9ff';
+  row.scrollIntoView({ block: 'nearest' });
+}
+
+function filterProdukRows(q) {
+  document.querySelectorAll('#produk-tbody [data-produk-row]').forEach((r, i) => {
+    const p = produkList.find(x => x.id === r.dataset.produkId);
+    const match = !q || p.nama.toLowerCase().includes(q) || (p.barcode || '').toLowerCase().includes(q);
+    r.style.display = match ? '' : 'none';
+  });
+  const count = visibleProdukRows().length;
+  const label = document.getElementById('produk-count');
+  if (label) label.textContent = count;
+}
+
+// Shortcut tab produk — didaftarkan sekali
+function initProdukShortcuts() {
+  if (produkShortcutReady) return;
+  produkShortcutReady = true;
+  const T = 'produk';
+
+  registerShortcut('n', () => {
+    if (currentView !== 'list') return false;
+    currentView = 'form';
+    window.showFormTambahProduk();
+  }, { tab: T });
+
+  registerShortcut('/', () => {
+    if (currentView !== 'list') return false;
+    focusElement('#input-cari-produk');
+  }, { tab: T });
+
+  registerShortcut('ctrl+enter', () => {
+    if (currentView !== 'form') return false;
+    document.getElementById('form-produk')?.requestSubmit();
+    document.getElementById('form-edit')?.requestSubmit();
+  }, { tab: T, allowInInput: true });
+
+  registerShortcut('escape', () => {
+    if (currentView === 'form') {
+      currentView = 'list';
+      initProdukUI();
+    } else {
+      const input = document.getElementById('input-cari-produk');
+      if (input && input.value) { input.value = ''; filterProdukRows(''); }
+      else return false;
+    }
+  }, { tab: T });
 }
 
 window.showFormTambahProduk = () => {
+  currentView = 'form';
   const container = document.querySelector('[data-panel="produk"]');
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
@@ -160,6 +273,7 @@ window.showFormTambahProduk = () => {
 };
 
 window.editProduk = async (produkId) => {
+  currentView = 'form';
   const produk = produkList.find(p => p.id === produkId);
   if (!produk) return;
 

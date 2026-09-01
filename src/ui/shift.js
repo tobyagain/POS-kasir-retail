@@ -3,15 +3,21 @@ import { bukaShift, tutupShift, getShiftTerbuka, listShifts } from '../services/
 import { listPenjualan } from '../services/saleService.js';
 import { listCashflow } from '../services/cashflowService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
+import { registerShortcut, focusElement } from './keyboardShortcuts.js';
+
+let shiftView = 'auto'; // 'buka' | 'aktif'
+let shiftShortcutReady = false;
 
 export async function initShiftUI() {
   const shiftAktif = await getShiftTerbuka();
-  
+  shiftView = shiftAktif ? 'aktif' : 'buka';
+
   if (shiftAktif) {
     await renderShiftAktif(shiftAktif);
   } else {
     await renderFormBuka();
   }
+  initShiftShortcuts();
 }
 
 async function renderFormBuka() {
@@ -32,7 +38,7 @@ async function renderFormBuka() {
           <label>Modal Awal (Rp) <span class="text-red">*</span></label>
           <input type="text" inputmode="numeric" name="modalAwal" required value="100.000">
         </div>
-        <button type="submit" class="primary" style="width:100%; margin-top:1rem;">Buka Shift</button>
+        <button type="submit" class="primary" style="width:100%; margin-top:1rem;">Buka Shift (Ctrl+Enter)</button>
       </form>
     </div>
 
@@ -231,7 +237,7 @@ async function renderShiftAktif(shift) {
           <label>Kas Fisik (Hitung Manual) <span class="text-red">*</span></label>
           <input type="text" inputmode="numeric" name="kasFisik" required placeholder="${formatRupiah(kasSistem)}" style="font-size:16px; font-weight:700;">
         </div>
-        <button type="submit" class="primary" style="padding:14px 32px; background:#dc2626;">Tutup Shift</button>
+        <button type="submit" class="primary" style="padding:14px 32px; background:#dc2626;" id="btn-tutup-shift">Tutup Shift (Ctrl+Enter)</button>
       </form>
     </div>
     </div>
@@ -274,6 +280,38 @@ function formatWaktu(ts) {
 
 function formatJam(ts) {
   return new Date(ts).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Shortcut shift
+function initShiftShortcuts() {
+  if (shiftShortcutReady) return;
+  shiftShortcutReady = true;
+  const T = 'shift';
+
+  registerShortcut('b', () => {
+    if (shiftView !== 'buka') return false;
+    focusElement('#form-buka-shift [name="kasir"]');
+  }, { tab: T });
+
+  registerShortcut('c', () => {
+    if (shiftView !== 'aktif') return false;
+    focusElement('#form-tutup-shift [name="kasFisik"]');
+  }, { tab: T });
+
+  registerShortcut('ctrl+enter', () => {
+    const form = shiftView === 'buka'
+      ? document.getElementById('form-buka-shift')
+      : document.getElementById('form-tutup-shift');
+    if (!form) return false;
+    form.requestSubmit();
+  }, { tab: T, allowInInput: true });
+
+  registerShortcut('escape', () => {
+    // Tidak ada mode modal khusus di shift; kembalikan fokus ke awal form
+    if (shiftView === 'buka') { focusElement('#form-buka-shift [name="kasir"]'); return true; }
+    if (shiftView === 'aktif') { document.activeElement?.blur(); return true; }
+    return false;
+  }, { tab: T });
 }
 
 window.initShiftUI = initShiftUI;
