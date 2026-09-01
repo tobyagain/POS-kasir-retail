@@ -13,18 +13,61 @@ let produkList = [];
 let selectedResultIndex = -1;
 let activeCartIndex = -1;
 let lastSaleId = null;
+let kasirRendered = false; // tandai DOM kasir sudah pernah dirender untuk shift aktif ini
 
 export async function initKasirUI() {
-  shiftAktif = await getShiftTerbuka();
+  const shiftTerbaru = await getShiftTerbuka();
 
-  if (!shiftAktif) {
+  if (!shiftTerbaru) {
+    kasirRendered = false;
+    shiftAktif = null;
     renderGuardShift();
     return;
   }
 
+  // Shift berganti (tutup/buka baru) atau keranjang belum pernah dirender untuk shift ini
+  const shiftSama = shiftAktif && shiftAktif.id === shiftTerbaru.id;
+  if (!shiftSama) {
+    keranjang = [];
+    shiftAktif = shiftTerbaru;
+  }
+
   produkList = await listProduk({ aktif: true });
-  await renderKasir();
+
+  if (kasirRendered && document.getElementById('input-search-produk')) {
+    // DOM masih utuh: cukup re-bind listener yang hilang (kalau ada) & re-render tampilan
+    // supaya keranjang yang sudah ada kembali terlihat tanpa reset state.
+    rebindIfDetached();
+    renderProdukGrid();
+    renderKeranjang();
+    renderPembayaran();
+    const search = document.getElementById('input-search-produk');
+    if (search) { search.focus(); }
+  } else {
+    await renderKasir();
+    kasirRendered = true;
+  }
+
   initKasirShortcuts();
+}
+
+// Deteksi listener click utama kasir masih menempel di panel.
+// Listener di-bind di bindKasirEvents() saat render; tidak ikut hilang oleh innerHTML
+// kecuali panel-nya dibuang (mis. tampilan Riwayat mengganti innerHTML container).
+// Untuk amannya kita re-bind saja (listener click delegation tertimpa di panel yang sama).
+let kasirPanelEl = null;
+function rebindIfDetached() {
+  const panel = document.querySelector('[data-panel="kasir"]');
+  if (panel !== kasirPanelEl) {
+    kasirPanelEl = panel;
+    bindKasirEvents();
+    rebindNumeric();
+  }
+}
+
+function rebindNumeric() {
+  bindNumericInput(document.getElementById('input-diskon-nota'));
+  bindNumericInput(document.getElementById('input-tunai'));
 }
 
 function renderGuardShift() {
@@ -179,11 +222,11 @@ async function renderKasir() {
   `;
 
   bindKasirEvents();
+  kasirPanelEl = document.querySelector('[data-panel="kasir"]');
   renderProdukGrid();
   renderKeranjang();
 
-  bindNumericInput(document.getElementById('input-diskon-nota'));
-  bindNumericInput(document.getElementById('input-tunai'));
+  rebindNumeric();
   document.getElementById('input-diskon-nota').addEventListener('input', hitungTotal);
 }
 
