@@ -39,7 +39,8 @@ const ASSETS = [
   `${BASE}src/ui/riwayat-penjualan.js`,
   `${BASE}src/ui/keyboardShortcuts.js`,
   `${BASE}src/ui/numeric-input.js`,
-  `${BASE}src/core/checkout.js`
+  `${BASE}src/core/checkout.js`,
+  `${BASE}src/core/importProduk.js`
 ];
 
 // Install — cache semua file

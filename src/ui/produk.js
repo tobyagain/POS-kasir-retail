@@ -17,7 +17,11 @@ async function renderList() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Daftar Produk (<span id="produk-count">${produkList.length}</span>)</h2>
-      <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk</button>
+      <div style="display:flex; gap:8px;">
+        <button class="secondary" onclick="window.downloadTemplateProduk()">⬇ Template CSV</button>
+        <button class="secondary" onclick="window.showImportProduk()">📥 Import CSV</button>
+        <button class="primary" onclick="window.showFormTambahProduk()">+ Tambah Produk</button>
+      </div>
     </div>
     <div style="margin-bottom:1rem;">
       <input type="text" id="input-cari-produk" placeholder="Cari produk..." style="width:100%; padding:10px; border:2px solid #0284c7; border-radius:6px;">
@@ -135,6 +139,143 @@ function filterProdukRows(q) {
   const label = document.getElementById('produk-count');
   if (label) label.textContent = count;
 }
+
+// ===== Import produk dari CSV =====
+
+window.downloadTemplateProduk = async () => {
+  if (!window.__importProdukCore) {
+    window.__importProdukCore = await import('../core/importProduk.js');
+  }
+  const { TEMPLATE_CSV } = window.__importProdukCore;
+  const blob = new Blob(['\ufeff' + TEMPLATE_CSV], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'template-import-produk.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+window.showImportProduk = async () => {
+  if (!window.__importProdukCore) {
+    window.__importProdukCore = await import('../core/importProduk.js');
+  }
+  const container = document.querySelector('[data-panel="produk"]');
+  container.innerHTML = `
+    <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+      <button class="secondary" onclick="window.initProdukUI()">← Kembali</button>
+      <h2 style="color:#0284c7; margin:0;">Import Produk dari CSV</h2>
+    </div>
+
+    <div style="flex:1; overflow-y:auto;">
+    <div class="card" style="max-width:700px;">
+      <div style="background:#f0f9ff; border:2px solid #bae6fd; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+        <div style="font-size:13px; color:#0284c7; font-weight:600; margin-bottom:4px;">Cara pakai</div>
+        <ol style="font-size:13px; color:#64748b; margin:0; padding-left:1.2rem; line-height:1.6;">
+          <li>Download <strong>Template CSV</strong>, buka di Excel</li>
+          <li>Isi data produk (kolom: barcode, nama, kategori, satuan, hargaJual, stokMin)</li>
+          <li>Save As → <strong>CSV (delimited)</strong></li>
+          <li>Pilih file di bawah ini → preview → Import</li>
+        </ol>
+        <div style="font-size:12px; color:#64748b; margin-top:8px;">
+          ⚠ HPP & stok tidak diimport — diisi lewat Barang Masuk. Barcode duplikat akan di-skip.
+        </div>
+      </div>
+
+      <input type="file" id="file-import-produk" accept=".csv,text/csv" style="margin-bottom:1rem;">
+      <div id="import-preview"></div>
+    </div>
+    </div>
+    </div>
+  `;
+
+  document.getElementById('file-import-produk').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const { produkList, errors, skipped } = window.__importProdukCore.parseImportProduk(text);
+    renderImportPreview(produkList, errors, skipped);
+  });
+};
+
+function renderImportPreview(produkList, errors, skipped) {
+  const el = document.getElementById('import-preview');
+
+  if (produkList.length === 0 && errors.length > 0) {
+    el.innerHTML = `
+      <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:6px; padding:1rem; color:#dc2626; font-size:13px;">
+        ${errors.map(e => `<div>⚠ ${e}</div>`).join('')}
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="margin-bottom:1rem; font-size:14px;">
+      <strong style="color:#10b981;">${produkList.length} produk siap diimport</strong>
+      ${skipped > 0 ? `<span style="color:#dc2626; margin-left:8px;">(${skipped} baris di-skip)</span>` : ''}
+    </div>
+    ${errors.length > 0 ? `
+      <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:6px; padding:8px 12px; margin-bottom:1rem; font-size:12px; color:#dc2626; max-height:120px; overflow-y:auto;">
+        ${errors.map(e => `<div>⚠ ${e}</div>`).join('')}
+      </div>` : ''}
+    <div style="max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:1rem;">
+      <table style="font-size:13px;">
+        <thead><tr><th>Barcode</th><th>Nama</th><th>Kategori</th><th>Satuan</th><th>Harga Jual</th><th>Stok Min</th></tr></thead>
+        <tbody>
+          ${produkList.map(p => `
+            <tr>
+              <td>${p.barcode || '-'}</td>
+              <td style="font-weight:600;">${p.nama}</td>
+              <td>${p.kategori || '-'}</td>
+              <td>${p.satuan}</td>
+              <td class="text-right">${formatRupiah(p.hargaJual)}</td>
+              <td class="text-right">${p.stokMin}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <button class="primary" style="width:100%; padding:14px; font-size:16px;" onclick="window.jalankanImportProduk()">
+      Import ${produkList.length} Produk
+    </button>
+  `;
+
+  window.__importProdukData = produkList;
+}
+
+window.jalankanImportProduk = async () => {
+  const list = window.__importProdukData || [];
+  if (list.length === 0) return;
+
+  const existing = await listProduk({ aktif: true });
+  const barcodeAda = new Set(existing.filter(p => p.barcode).map(p => p.barcode));
+
+  let imported = 0, dupSkipped = 0, failed = 0;
+  for (const p of list) {
+    if (p.barcode && barcodeAda.has(p.barcode)) { dupSkipped++; continue; }
+    try {
+      await buatProduk(p);
+      imported++;
+      if (p.barcode) barcodeAda.add(p.barcode);
+    } catch (err) {
+      failed++;
+      console.error('Import gagal:', p.nama, err);
+    }
+  }
+
+  const el = document.getElementById('import-preview');
+  el.innerHTML = `
+    <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:6px; padding:1.5rem; text-align:center;">
+      <div style="font-size:32px; margin-bottom:8px;">✅</div>
+      <div style="font-size:18px; font-weight:700; color:#047857; margin-bottom:8px;">Import selesai</div>
+      <div style="font-size:14px; color:#64748b;">
+        ${imported} produk ditambahkan
+        ${dupSkipped > 0 ? ` · ${dupSkipped} barcode duplikat di-skip` : ''}
+        ${failed > 0 ? ` · <span style="color:#dc2626;">${failed} gagal</span>` : ''}
+      </div>
+      <button class="primary mt-2" onclick="window.initProdukUI()">Lihat Daftar Produk</button>
+    </div>
+  `;
+};
 
 window.showFormTambahProduk = () => {
   const container = document.querySelector('[data-panel="produk"]');
