@@ -73,7 +73,7 @@ function rebindNumeric() {
 function renderGuardShift() {
   const container = document.querySelector('[data-panel="kasir"]');
   container.innerHTML = `
-    <div style="max-width:500px; margin:2rem auto; text-align:center; padding:2rem; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px;">
+    <div style="max-width:480px; margin:3rem auto; text-align:center; padding:2rem; background:var(--danger-soft); border:1px solid #fca5a5; border-radius:var(--radius);">
       <h2 class="text-red">⚠ Tidak Ada Shift Terbuka</h2>
       <p class="mt-1 text-gray">Buka shift dulu di tab <strong>Shift</strong> sebelum jualan.</p>
       <button class="primary mt-2" data-action="goto-shift">Ke Tab Shift</button>
@@ -86,120 +86,129 @@ async function renderKasir() {
   container.innerHTML = `
     <style>
       .produk-row-active {
-        border-color: #0284c7 !important;
-        background: #f0f9ff !important;
+        border-color: var(--accent) !important;
+        background: var(--accent-soft) !important;
       }
       .cart-row-active {
-        outline: 2px solid #0284c7;
+        outline: 2px solid var(--accent);
         outline-offset: -2px;
       }
       .inline-error {
-        background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626;
-        padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+        background: var(--danger-soft); border: 1px solid #fca5a5; color: var(--danger);
+        padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      }
+      .kasir-zone {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+      .produk-row {
+        padding: 10px 12px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        background: var(--surface);
+        transition: border-color 0.12s, background 0.12s;
+        margin-bottom: 6px;
+      }
+      .produk-row:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
       }
     </style>
 
-    <div style="display:grid; grid-template-columns:1fr 420px; gap:16px; height:calc(100vh - 120px); padding:0;">
+    <div style="display:grid; grid-template-columns:1fr 400px; gap:12px; height:calc(100vh - 110px); padding:0;">
 
       <!-- KIRI: PRODUK -->
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <div style="background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
-          <div style="padding:12px; background:#0284c7;">
-            <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">🔍 CARI PRODUK</div>
-            <div style="font-size:11px; color:#bfdbfe;">Scan barcode atau ketik nama</div>
-          </div>
+      <div style="display:flex; flex-direction:column; gap:10px; min-height:0;">
 
-          <div style="padding:12px;">
-            <input
-              type="text"
-              id="input-search-produk"
-              placeholder="Scan / Ketik nama produk..."
-              style="width:100%; padding:12px; font-size:16px; border:2px solid #0284c7; border-radius:6px;"
-              autofocus>
-            <div style="font-size:11px; color:#64748b; margin-top:6px;">
-              <span class="shortcut-hint">Ctrl+K</span> fokus
-              <span class="shortcut-hint">Enter</span> tambah
-              <span class="shortcut-hint">↑↓</span> pilih
-            </div>
+        <!-- Search bar -->
+        <div class="kasir-zone" style="padding:12px;">
+          <input
+            type="text"
+            id="input-search-produk"
+            placeholder="Scan barcode atau ketik nama produk…"
+            style="width:100%; padding:14px 16px; font-size:17px; border:2px solid var(--accent); border-radius:8px; font-weight:500;"
+            autofocus>
+          <div style="font-size:11px; color:var(--text-mute); margin-top:8px; display:flex; gap:12px; flex-wrap:wrap;">
+            <span><span class="shortcut-hint">Ctrl+K</span> fokus</span>
+            <span><span class="shortcut-hint">Enter</span> tambah</span>
+            <span><span class="shortcut-hint">↑↓</span> pilih</span>
+            <span><span class="shortcut-hint">Esc</span> bersih</span>
           </div>
         </div>
 
-        <div id="produk-panel" style="background:#fff; padding:12px; border-radius:8px; flex:1; overflow-y:auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-          <div style="font-size:13px; font-weight:600; color:#64748b; margin-bottom:8px;">PRODUK</div>
-          <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>
+        <!-- Grid Produk -->
+        <div id="produk-panel" class="kasir-zone" style="padding:12px; flex:1; overflow-y:auto; min-height:0;">
+          <div id="produk-grid" style="display:grid; grid-template-columns:1fr; gap:0;"></div>
         </div>
 
-        <div style="background:#0284c7; color:#fff; padding:10px 12px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-          <span><strong>Shift:</strong> ${shiftAktif.kasir}</span>
-          <button class="secondary" data-action="riwayat" style="padding:6px 12px; background:#fff; color:#0284c7; border:none; border-radius:4px; font-size:11px; cursor:pointer;">
+        <!-- Info Shift -->
+        <div class="kasir-zone" style="padding:10px 14px; font-size:12px; display:flex; justify-content:space-between; align-items:center; color:var(--text-soft);">
+          <span>Shift: <strong style="color:var(--text);">${shiftAktif.kasir}</strong></span>
+          <button class="secondary" data-action="riwayat" style="padding:6px 12px; font-size:12px;">
             Riwayat <span class="shortcut-hint">Ctrl+H</span>
           </button>
         </div>
       </div>
 
       <!-- KANAN: KERANJANG + PEMBAYARAN -->
-      <div style="display:flex; flex-direction:column; gap:12px;">
+      <div style="display:flex; flex-direction:column; gap:10px; min-height:0;">
 
         <!-- KERANJANG -->
-        <div style="background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:flex; flex-direction:column; flex:1; min-height:0;">
-          <h2 style="margin:0 0 12px 0; padding-bottom:12px; border-bottom:2px solid #e2e8f0; color:#0f172a; font-size:16px;">DAFTAR ITEM</h2>
+        <div class="kasir-zone" style="padding:14px; display:flex; flex-direction:column; flex:1; min-height:0;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-mute); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Item</div>
 
-          <div id="keranjang-content" style="flex:1; overflow-y:auto; margin-bottom:12px;"></div>
+          <div id="keranjang-content" style="flex:1; overflow-y:auto; margin-bottom:10px; min-height:0;"></div>
 
-          <div style="border-top:2px solid #e2e8f0; padding-top:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <span style="font-size:13px; color:#64748b; font-weight:600;">Diskon <span class="shortcut-hint">F7</span></span>
-              <input type="text" id="input-diskon-nota" value="0" style="width:130px; text-align:right; padding:8px; border:2px solid #cbd5e1; border-radius:6px; font-size:14px;">
+          <div style="border-top:1.5px solid var(--border); padding-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:13px; color:var(--text-soft); font-weight:600;">Diskon <span class="shortcut-hint">F7</span></span>
+              <input type="text" id="input-diskon-nota" value="0" style="width:130px; text-align:right; padding:8px 10px; font-size:14px;">
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid #e2e8f0;">
-              <span style="font-size:20px; font-weight:700; color:#64748b;">TOTAL</span>
-              <span id="label-total" style="font-size:28px; font-weight:700; color:#0284c7;">Rp 0</span>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:8px 0 2px 0;">
+              <span style="font-size:14px; font-weight:600; color:var(--text-soft);">TOTAL</span>
+              <span id="label-total" style="font-size:32px; font-weight:800; color:var(--accent); letter-spacing:-0.02em;">Rp 0</span>
             </div>
           </div>
         </div>
 
         <!-- PEMBAYARAN -->
-        <div style="background:#fff; padding:14px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-          <h3 style="margin:0 0 10px 0; color:#0f172a; font-size:14px; font-weight:700;">PEMBAYARAN</h3>
+        <div class="kasir-zone" style="padding:14px;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-mute); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Pembayaran</div>
 
-          <div id="payment-error" style="display:none;" class="inline-error"></div>
+          <div id="payment-error" style="display:none; margin-bottom:10px;" class="inline-error"></div>
 
-          <div style="background:#f0fdf4; border:2px solid #10b981; border-radius:6px; padding:10px; margin-bottom:10px;">
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-              <span style="font-size:14px;">💵</span>
-              <strong style="flex:1; font-size:12px;">TUNAI</strong>
-              <span class="shortcut-hint" style="font-size:10px; padding:2px 4px;">F8</span>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <div style="flex:1; position:relative;">
+              <input type="text" id="input-tunai" placeholder="Tunai (F8)" style="width:100%; padding:12px 14px; font-size:16px; font-weight:700; text-align:right; border:2px solid var(--ok); border-radius:8px;">
             </div>
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="input-tunai" placeholder="0" style="flex:1; padding:10px; font-size:14px; font-weight:600; text-align:right; border:2px solid #10b981; border-radius:4px;">
-              <button data-action="bayar-tunai" style="padding:10px 14px; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:700;">OK</button>
-            </div>
+            <button data-action="bayar-tunai" style="padding:12px 18px; background:var(--ok); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">+ Tunai</button>
           </div>
 
-          <button data-action="bayar-qris" style="width:100%; padding:12px; font-size:13px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:10px;">
-            <span style="font-size:16px;">📱</span>
-            <span>QRIS sisa</span>
-            <span class="shortcut-hint" style="background:#fff; color:#0284c7; font-size:10px; padding:2px 4px;">Alt+Q</span>
+          <button data-action="bayar-qris" style="width:100%; padding:12px; font-size:14px; font-weight:600; background:var(--surface); color:var(--accent-text); border:1.5px solid var(--accent); border-radius:8px; cursor:pointer; margin-bottom:10px;">
+            QRIS sisa tagihan <span class="shortcut-hint">Alt+Q</span>
           </button>
 
-          <div id="pembayaran-list" style="margin-bottom:10px;"></div>
+          <div id="pembayaran-list" style="margin-bottom:8px;"></div>
 
-          <div id="kembalian-info" style="padding:10px; background:#d1fae5; border-radius:4px; font-size:13px; font-weight:700; margin-bottom:10px; display:none;">
-            Kembalian: <span id="label-kembalian" style="color:#047857;">Rp 0</span>
+          <div id="kembalian-info" style="padding:10px 12px; background:var(--ok-soft); border-radius:8px; font-size:14px; font-weight:700; margin-bottom:10px; display:none; color:#047857;">
+            Kembalian: <span id="label-kembalian">Rp 0</span>
           </div>
 
           <div id="after-sale-actions" style="display:none; margin-bottom:10px;">
-            <button data-action="cetak-ulang" style="width:100%; padding:10px; background:#f59e0b; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px;">
+            <button data-action="cetak-ulang" style="width:100%; padding:10px; background:var(--warn); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:13px;">
               ⚠ Cetak Ulang Struk
             </button>
           </div>
 
-          <button data-action="selesai-bayar" id="btn-bayar" style="width:100%; padding:16px; font-size:16px; font-weight:700; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;">
-            BAYAR <span class="shortcut-hint" style="background:#fff; color:#047857; font-size:10px; padding:2px 4px;">Ctrl+Enter</span>
+          <button data-action="selesai-bayar" id="btn-bayar" style="width:100%; padding:16px; font-size:17px; font-weight:800; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; letter-spacing:0.02em;">
+            BAYAR <span class="shortcut-hint" style="background:rgba(255,255,255,0.2); color:#fff; border-color:transparent;">Ctrl+Enter</span>
           </button>
 
-          <button data-action="reset-keranjang" style="width:100%; padding:10px; margin-top:8px; font-size:12px; background:#f1f5f9; color:#64748b; border:none; border-radius:4px; cursor:pointer;">
-            Transaksi Baru <span class="shortcut-hint" style="font-size:10px;">Ctrl+B</span>
+          <button data-action="reset-keranjang" style="width:100%; padding:9px; margin-top:8px; font-size:12px; background:transparent; color:var(--text-mute); border:1px solid var(--border); border-radius:8px; cursor:pointer;">
+            Transaksi Baru <span class="shortcut-hint">Ctrl+B</span>
           </button>
         </div>
 
@@ -328,17 +337,14 @@ function renderProdukGrid(searchQuery = '') {
   }
 
   grid.innerHTML = filtered.slice(0, 50).map(p => `
-    <div data-action="produk-row" data-produk-id="${p.id}"
-         style="padding:10px 12px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer; background:#fff; transition:all 0.15s; margin-bottom:6px;"
-         onmouseover="this.style.borderColor='#0284c7'; this.style.background='#f0f9ff'; this.style.transform='translateX(3px)';"
-         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff'; this.style.transform='translateX(0)';">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <div style="flex:1; font-weight:700; font-size:14px; color:#0f172a; line-height:1.2;">${p.nama}</div>
-        <div style="font-weight:700; font-size:16px; color:#0284c7; margin-left:12px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
+    <div data-action="produk-row" data-produk-id="${p.id}" class="produk-row">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+        <div style="flex:1; font-weight:600; font-size:14px; color:var(--text); line-height:1.3;">${p.nama}</div>
+        <div style="font-weight:700; font-size:15px; color:var(--accent); margin-left:12px; white-space:nowrap;">${formatRupiah(p.hargaJual)}</div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-size:11px; color:#64748b;">Stok: <span style="font-weight:700; color:${p.stok > 10 ? '#059669' : p.stok > 0 ? '#f59e0b' : '#dc2626'}">${p.stok}</span></div>
-        ${p.barcode ? `<div style="font-size:10px; color:#94a3b8; font-family:monospace; background:#f8fafc; padding:2px 5px; border-radius:3px;">${p.barcode}</div>` : ''}
+        <div style="font-size:11px; color:var(--text-mute);">Stok: <span style="font-weight:700; color:${p.stok > 10 ? 'var(--ok)' : p.stok > 0 ? 'var(--warn)' : 'var(--danger)'}">${p.stok}</span></div>
+        ${p.barcode ? `<div style="font-size:10px; color:var(--text-mute); font-family:monospace; background:var(--surface-2); padding:2px 6px; border-radius:4px;">${p.barcode}</div>` : ''}
       </div>
     </div>
   `).join('');
@@ -406,35 +412,35 @@ function renderKeranjang() {
   if (!container) return;
 
   if (keranjang.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:2rem; color:#94a3b8;">Keranjang kosong</div>';
+    container.innerHTML = '<div style="text-align:center; padding:2.5rem 1rem; color:var(--text-mute); font-size:13px;">Keranjang kosong — scan produk untuk mulai</div>';
   } else {
     container.innerHTML = `
-      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:0; background:transparent;">
         <thead>
-          <tr style="border-bottom:2px solid #e2e8f0; text-align:left;">
-            <th style="padding:8px 4px; color:#64748b; font-weight:600;">Item</th>
-            <th style="padding:8px 4px; color:#64748b; font-weight:600; text-align:center; width:80px;">Qty</th>
-            <th style="padding:8px 4px; color:#64748b; font-weight:600; text-align:right; width:100px;">Jumlah</th>
-            <th style="padding:8px 4px; width:60px;"></th>
+          <tr style="border-bottom:1.5px solid var(--border); text-align:left;">
+            <th style="padding:6px 4px; background:transparent;">Item</th>
+            <th style="padding:6px 4px; text-align:center; width:84px; background:transparent;">Qty</th>
+            <th style="padding:6px 4px; text-align:right; width:100px; background:transparent;">Jumlah</th>
+            <th style="padding:6px 4px; width:34px; background:transparent;"></th>
           </tr>
         </thead>
         <tbody>
           ${keranjang.map((it, i) => `
-            <tr data-cart-row="${i}" class="${i === activeCartIndex ? 'cart-row-active' : ''}" style="border-bottom:1px solid #f1f5f9;">
+            <tr data-cart-row="${i}" class="${i === activeCartIndex ? 'cart-row-active' : ''}" style="border-bottom:1px solid var(--border);">
               <td style="padding:8px 4px;">
-                <div style="font-weight:600; color:#0f172a; margin-bottom:2px;">${it.nama}</div>
-                <input type="text" inputmode="numeric" data-harga-index="${i}" value="${it.hargaJualSnapshot.toLocaleString('id-ID')}" aria-label="Harga ${it.nama}" style="width:110px; padding:4px 6px; text-align:right; border:1px solid #cbd5e1; border-radius:4px; font-size:11px; color:#64748b;">
+                <div style="font-weight:600; color:var(--text); margin-bottom:3px; font-size:13px;">${it.nama}</div>
+                <input type="text" inputmode="numeric" data-harga-index="${i}" value="${it.hargaJualSnapshot.toLocaleString('id-ID')}" aria-label="Harga ${it.nama}" style="width:110px; padding:4px 8px; text-align:right; font-size:12px; color:var(--text-soft);">
               </td>
               <td style="padding:8px 4px; text-align:center;">
                 <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
-                  <button data-action="qty-minus" data-index="${i}" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">−</button>
-                  <span style="font-weight:700; min-width:30px; text-align:center;">${it.qty}</span>
-                  <button data-action="qty-plus" data-index="${i}" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">+</button>
+                  <button data-action="qty-minus" data-index="${i}" style="width:26px; height:26px; padding:0; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-weight:700; font-size:15px; color:var(--text-soft);">−</button>
+                  <span style="font-weight:700; min-width:28px; text-align:center; font-size:14px;">${it.qty}</span>
+                  <button data-action="qty-plus" data-index="${i}" style="width:26px; height:26px; padding:0; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-weight:700; font-size:15px; color:var(--text-soft);">+</button>
                 </div>
               </td>
-              <td data-total-item style="padding:8px 4px; text-align:right; font-weight:700; color:#0284c7;">${formatRupiah(it.subtotal)}</td>
+              <td data-total-item style="padding:8px 4px; text-align:right; font-weight:700; color:var(--accent); font-size:14px;">${formatRupiah(it.subtotal)}</td>
               <td style="padding:8px 4px; text-align:center;">
-                <button data-action="hapus-item" data-index="${i}" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus (Delete)">×</button>
+                <button data-action="hapus-item" data-index="${i}" style="width:26px; height:26px; padding:0; background:var(--danger-soft); color:var(--danger); border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:15px;" title="Hapus (Delete)">×</button>
               </td>
             </tr>
           `).join('')}
@@ -564,12 +570,12 @@ function renderPembayaran() {
 
   if (pembayaranList.length > 0) {
     container.innerHTML = `
-      <div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
+      <div style="background:var(--surface-2); padding:8px 12px; border-radius:8px; border:1px solid var(--border);">
         ${pembayaranList.map((p, i) => `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0;">
-            <span style="font-weight:600; color:#475569;">${capitalize(p.metode)}</span>
-            <span style="font-weight:700; color:#0f172a;">${formatRupiah(p.jumlah)}</span>
-            <button data-action="hapus-pembayaran" data-index="${i}" style="padding:3px 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700;">×</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0;">
+            <span style="font-weight:600; color:var(--text-soft); font-size:13px;">${capitalize(p.metode)}</span>
+            <span style="font-weight:700; color:var(--text); font-size:13px;">${formatRupiah(p.jumlah)}</span>
+            <button data-action="hapus-pembayaran" data-index="${i}" style="padding:2px 8px; background:var(--danger-soft); color:var(--danger); border:none; border-radius:5px; cursor:pointer; font-weight:700; font-size:13px;">×</button>
           </div>
         `).join('')}
       </div>
