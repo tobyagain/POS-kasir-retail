@@ -128,22 +128,10 @@ window.showFormBarangMasuk = async () => {
   `;
 
   // Format thousand separator untuk input qty & harga
-  const formatNumber = (input) => {
-    input.addEventListener('input', (e) => {
-      let val = e.target.value.replace(/\D/g, '');
-      if (val === '') val = '0';
-      e.target.value = parseInt(val).toLocaleString('id-ID');
-    });
-    input.addEventListener('focus', (e) => {
-      let val = e.target.value.replace(/\D/g, '');
-      e.target.value = val === '0' ? '' : val;
-    });
-  };
-  
+  const hasilCari = document.getElementById('hasil-cari-produk');
   const qtyInput = document.getElementById('input-qty');
   const hargaInput = document.getElementById('input-harga');
   const cariInput = document.getElementById('input-cari-produk');
-  const hasilCari = document.getElementById('hasil-cari-produk');
   bindNumericInput(qtyInput);
   bindNumericInput(hargaInput);
   selectedProdukId = '';

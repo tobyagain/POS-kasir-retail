@@ -3,6 +3,7 @@ import { cariByBarcode, cariByNama, listProduk } from '../services/productServic
 import { simpanPenjualan } from '../services/saleService.js';
 import { getShiftTerbuka } from '../services/shiftService.js';
 import { cetakStruk } from '../services/printService.js';
+import { bindNumericInput, readNumericInput } from './numeric-input.js';
 
 let keranjang = [];
 let shiftAktif = null;
@@ -181,27 +182,8 @@ async function renderKasir() {
   renderKeranjang();
 
   // Format thousand separator untuk input angka
-  const formatInputNumber = (input) => {
-    input.addEventListener('input', (e) => {
-      let val = e.target.value.replace(/\D/g, ''); // hapus non-digit
-      if (val === '') val = '0';
-      e.target.value = parseInt(val).toLocaleString('id-ID');
-    });
-    input.addEventListener('focus', (e) => {
-      // Hapus separator saat focus untuk kemudahan edit
-      let val = e.target.value.replace(/\D/g, '');
-      e.target.value = val === '0' ? '' : val;
-    });
-    input.addEventListener('blur', (e) => {
-      // Tambah separator lagi saat blur
-      let val = e.target.value.replace(/\D/g, '');
-      if (val === '') val = '0';
-      e.target.value = parseInt(val).toLocaleString('id-ID');
-    });
-  };
-
-  formatInputNumber(document.getElementById('input-diskon-nota'));
-  formatInputNumber(document.getElementById('input-tunai'));
+  bindNumericInput(document.getElementById('input-diskon-nota'));
+  bindNumericInput(document.getElementById('input-tunai'));
 
   document.getElementById('input-diskon-nota').addEventListener('input', hitungTotal);
 }
@@ -347,7 +329,7 @@ function renderKeranjang() {
             <tr style="border-bottom:1px solid #f1f5f9;">
               <td style="padding:8px 4px;">
                 <div style="font-weight:600; color:#0f172a; margin-bottom:2px;">${it.nama}</div>
-                <div style="color:#64748b; font-size:11px;">${formatRupiah(it.hargaJualSnapshot)}</div>
+                <input type="text" inputmode="numeric" data-action="harga" data-index="${i}" value="${it.hargaJualSnapshot.toLocaleString('id-ID')}" aria-label="Harga ${it.nama}" style="width:110px; padding:4px 6px; text-align:right; border:1px solid #cbd5e1; border-radius:4px; font-size:11px; color:#64748b;">
               </td>
               <td style="padding:8px 4px; text-align:center;">
                 <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
@@ -356,7 +338,7 @@ function renderKeranjang() {
                   <button data-action="qty-plus" data-index="${i}" style="width:24px; height:24px; padding:0; background:#e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:14px;">+</button>
                 </div>
               </td>
-              <td style="padding:8px 4px; text-align:right; font-weight:700; color:#0284c7;">${formatRupiah(it.subtotal)}</td>
+              <td data-total-item style="padding:8px 4px; text-align:right; font-weight:700; color:#0284c7;">${formatRupiah(it.subtotal)}</td>
               <td style="padding:8px 4px; text-align:center;">
                 <button data-action="hapus" data-index="${i}" style="width:28px; height:28px; padding:0; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-weight:700; font-size:16px;" title="Hapus">×</button>
               </td>
@@ -366,6 +348,21 @@ function renderKeranjang() {
       </table>
     `;
   }
+
+  container.querySelectorAll('[data-action="harga"]').forEach(input => {
+    bindNumericInput(input);
+    input.addEventListener('input', () => {
+      const index = Number(input.dataset.index);
+      const harga = readNumericInput(input);
+      if (!Number.isSafeInteger(harga) || harga < 0) return;
+      const item = keranjang[index];
+      item.hargaJualSnapshot = harga;
+      item.subtotal = item.qty * harga - item.diskonItem;
+      const totalCell = input.closest('tr').querySelector('[data-total-item]');
+      if (totalCell) totalCell.textContent = formatRupiah(item.subtotal);
+      hitungTotal();
+    });
+  });
 
   hitungTotal();
 }
