@@ -45,6 +45,15 @@ test('kas manual: hanya yang tunai memengaruhi laci', () => {
   assert.deepEqual(totalKasManual(cf), { masuk: 20000, keluar: 50000 });
 });
 
+test('kas sistem menghitung refund tunai dari void', () => {
+  const shift = { modalAwal: 200000 };
+  const sales = [
+    { void: true, refund: { tunai: 10000 }, pembayaran: [{ metode: 'tunai', jumlah: 10000 }], kembalian: 0 },
+    { void: false, pembayaran: [{ metode: 'tunai', jumlah: 5000 }], kembalian: 0 },
+  ];
+  assert.equal(hitungKasSistem(shift, sales, []), 195000);
+});
+
 test('kas sistem = modal + tunai + masuk - keluar (INV-4)', () => {
   const shift = { modalAwal: 200000 };
   const cf = [{ jenis: 'keluar', nominal: 50000, tunai: true }];

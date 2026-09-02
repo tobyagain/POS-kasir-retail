@@ -11,7 +11,11 @@
 export function totalTunaiPenjualan(sales) {
   let total = 0;
   for (const s of sales) {
-    if (s.void) continue;
+    if (s.void) {
+      // Void berbayar = refund. Hanya refund tunai mengubah isi laci.
+      total -= Number(s.refund?.tunai || 0);
+      continue;
+    }
     const tunaiDibayar = (s.pembayaran || []).filter(p => p.metode === 'tunai').reduce((sum, p) => sum + p.jumlah, 0);
     const kembalian = s.kembalian || 0;
     total += (tunaiDibayar - kembalian);

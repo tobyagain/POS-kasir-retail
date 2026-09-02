@@ -1,12 +1,25 @@
 // core/reports.js — agregasi laporan. FUNGSI MURNI. Baca hppSnapshot/hargaSnapshot
 // dari transaksi (INV-1/2), TIDAK dari master produk. Exclude void.
 
-/** Omzet per metode bayar dari daftar sale (exclude void). */
+/** Omzet per metode bayar dari daftar sale (exclude void).
+ * Pembayaran dialokasi ke omzet netto agar kembalian/kelebihan tidak membesarkan omzet.
+ */
 export function omzetPerMetode(sales) {
   const out = {};
   for (const s of sales) {
     if (s.void) continue;
-    for (const p of s.pembayaran || []) out[p.metode] = (out[p.metode] || 0) + p.jumlah;
+    const payments = s.pembayaran || [];
+    const totalDibayar = payments.reduce((sum, p) => sum + p.jumlah, 0);
+    const totalNetto = Number(s.totalNetto ?? totalDibayar);
+    if (totalDibayar <= 0 || totalNetto < 0) continue;
+    let allocated = 0;
+    payments.forEach((p, index) => {
+      const amount = index === payments.length - 1
+        ? totalNetto - allocated
+        : Math.floor(totalNetto * p.jumlah / totalDibayar);
+      allocated += amount;
+      out[p.metode] = (out[p.metode] || 0) + amount;
+    });
   }
   return out;
 }
@@ -24,17 +37,15 @@ export function labaKotor(sales) {
     const items = Array.isArray(s.items) ? s.items : [];
     const totalBruto = items.reduce((sum, it) => sum + (it.subtotal || 0), 0);
     const diskonNota = s.diskonNota || 0;
-    for (const it of items) {
-      // Laba item sebelum diskon nota
+    let diskonTeralokasi = 0;
+    items.forEach((it, index) => {
       const labaItem = (it.hargaJualSnapshot - it.hppSnapshot) * it.qty - (it.diskonItem || 0);
-      
-      // Alokasi diskon nota proporsional berdasarkan subtotal item
-      const alokDiskonNota = totalBruto > 0 
-        ? Math.round(diskonNota * (it.subtotal / totalBruto))
-        : 0;
-      
+      const alokDiskonNota = index === items.length - 1
+        ? diskonNota - diskonTeralokasi
+        : totalBruto > 0 ? Math.floor(diskonNota * (it.subtotal / totalBruto)) : 0;
+      diskonTeralokasi += alokDiskonNota;
       laba += labaItem - alokDiskonNota;
-    }
+    });
   }
   return laba;
 }

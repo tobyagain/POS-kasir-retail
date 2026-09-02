@@ -63,7 +63,7 @@ export async function tutupShift(shiftId, kasFisik) {
   });
 
   // Hitung kas sistem (INV-4)
-  const kasSistem = hitungKasSistem(shift, sales, cashflow);
+  const kasSistem = hitungKasSistem(shift, salesAll, cashflow);
   const selisih = hitungSelisih(kasFisik, kasSistem);
 
   // Ringkasan per metode bayar

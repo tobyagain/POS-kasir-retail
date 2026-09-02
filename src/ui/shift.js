@@ -110,9 +110,9 @@ async function renderShiftAktif(shift) {
   
   // Import dari core untuk konsistensi rumus (fix duplikasi logik)
   const { hitungKasSistem, totalTunaiPenjualan, totalKasManual } = await import('../core/shift.js');
-  const kasSistem = hitungKasSistem(shift, salesValid, cashflows);
+  const kasSistem = hitungKasSistem(shift, sales, cashflows);
   // Hitung detail untuk display
-  const totalTunai = totalTunaiPenjualan(salesValid);
+  const totalTunai = totalTunaiPenjualan(sales);
   const { masuk: kasMasuk, keluar: kasKeluar } = totalKasManual(cashflows);
 
   const container = document.querySelector('[data-panel="shift"]');

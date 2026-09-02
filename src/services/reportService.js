@@ -1,6 +1,6 @@
 // reportService — orkestrasi laporan (ambil data, panggil core)
 import { openDB } from '../data/db.js';
-import { labaKotor, labaBersih, produkTerlaris } from '../core/reports.js';
+import { labaKotor, labaBersih, produkTerlaris, omzetPerMetode } from '../core/reports.js';
 
 // Laporan omzet & profit (rentang tanggal)
 export async function laporanOmzetProfit(dariTanggal, sampaiTanggal) {
@@ -14,14 +14,8 @@ export async function laporanOmzetProfit(dariTanggal, sampaiTanggal) {
   const labaKotorValue = labaKotor(sales);
   const labaBersihValue = labaBersih(sales, cashflows);
 
-  // Omzet per metode
-  const perMetode = {};
-  sales.forEach(s => {
-    (s.pembayaran || []).forEach(p => {
-      if (!perMetode[p.metode]) perMetode[p.metode] = 0;
-      perMetode[p.metode] += p.jumlah;
-    });
-  });
+  // Omzet per metode, dialokasi ke total netto agar kembalian tidak ikut omzet.
+  const perMetode = omzetPerMetode(sales);
 
   const totalOmzet = sales.reduce((sum, s) => sum + Number(s.totalNetto || 0), 0);
 

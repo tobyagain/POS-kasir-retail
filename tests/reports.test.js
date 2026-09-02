@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { labaKotor, labaBersih, produkTerlaris, stokMenipis } from '../src/core/reports.js';
+import { labaKotor, labaBersih, produkTerlaris, stokMenipis, omzetPerMetode } from '../src/core/reports.js';
 
 const sales = [
   { void:false, diskonNota:0, items:[
@@ -11,6 +11,11 @@ const sales = [
   ], pembayaran:[] },
 ];
 
+test('omzet per metode tidak menghitung kembalian sebagai omzet', () => {
+  assert.deepEqual(omzetPerMetode([
+    { void: false, totalNetto: 7000, pembayaran: [{ metode: 'tunai', jumlah: 10000 }] }
+  ]), { tunai: 7000 });
+});
 test('laba kotor pakai snapshot & exclude void', () => {
   assert.equal(labaKotor(sales), 1400);
 });
@@ -22,6 +27,14 @@ test('laba kotor: diskon item & nota mengurangi (proporsional)', () => {
   assert.equal(labaKotor(s), 1300);
 });
 
+test('laba kotor: alokasi diskon nota selalu habis tepat', () => {
+  const s = [{ void: false, diskonNota: 1, items: [
+    { qty: 1, hargaJualSnapshot: 300, hppSnapshot: 0, diskonItem: 0, subtotal: 300 },
+    { qty: 1, hargaJualSnapshot: 300, hppSnapshot: 0, diskonItem: 0, subtotal: 300 },
+    { qty: 1, hargaJualSnapshot: 300, hppSnapshot: 0, diskonItem: 0, subtotal: 300 },
+  ] }];
+  assert.equal(labaKotor(s), 899);
+});
 test('laba bersih: hanya operasional dikurangi (prive/beli_stok tidak)', () => {
   const cf = [
     { jenis:'keluar', kategori:'operasional', nominal:400 },

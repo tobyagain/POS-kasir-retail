@@ -93,6 +93,14 @@ export async function voidPenjualan(saleId, alasan) {
       if (!current || current.void) { tx.abort(); return; }
       current.void = true;
       current.voidAlasan = alasan || 'Dibatalkan';
+      const tunaiDibayar = (current.pembayaran || [])
+        .filter(p => p.metode === 'tunai')
+        .reduce((sum, p) => sum + p.jumlah, 0);
+      current.refund = {
+        pembayaran: (current.pembayaran || []).map(p => ({ ...p })),
+        tunai: Math.max(0, tunaiDibayar - (current.kembalian || 0)),
+        total: current.totalNetto
+      };
       stores.sales.put(current);
       processStock(stores, tx, current.items || [], current, now, true);
     };
