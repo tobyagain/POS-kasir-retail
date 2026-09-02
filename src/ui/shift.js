@@ -45,6 +45,7 @@ async function renderFormBuka() {
             <th>Buka</th>
             <th>Tutup</th>
             <th>Omzet</th>
+            <th>Per Metode</th>
             <th>Selisih</th>
           </tr>
         </thead>
@@ -55,6 +56,7 @@ async function renderFormBuka() {
               <td>${formatWaktu(s.buka)}</td>
               <td>${s.tutup ? formatWaktu(s.tutup) : '-'}</td>
               <td class="text-right">${s.ringkasan ? formatRupiah(s.ringkasan.omzet) : '-'}</td>
+              <td style="font-size:12px; color:#64748b;">${s.ringkasan?.perMetode ? formatPerMetodeCompact(s.ringkasan.perMetode) : '-'}</td>
               <td class="text-right ${s.selisih && s.selisih !== 0 ? (s.selisih > 0 ? 'text-green' : 'text-red') : ''}">${s.selisih !== null ? formatRupiah(s.selisih) : '-'}</td>
             </tr>
           `).join('')}
@@ -185,6 +187,12 @@ async function renderShiftAktif(shift) {
       </div>
     </div>
 
+    <!-- Per Metode Bayar -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3 style="color:#0284c7; font-size:16px; margin-bottom:1rem;">💳 Per Metode Bayar</h3>
+      ${renderPerMetode(salesValid)}
+    </div>
+
     <!-- Transaksi Terakhir -->
     ${salesValid.length > 0 ? `
       <div class="card">
@@ -258,6 +266,34 @@ async function renderShiftAktif(shift) {
       alert('Gagal: ' + err.message);
     }
   };
+}
+
+function renderPerMetode(sales) {
+  const counts = {};
+  for (const s of sales) {
+    for (const p of (s.pembayaran || [])) {
+      if (!counts[p.metode]) counts[p.metode] = { count: 0, total: 0 };
+      counts[p.metode].count++;
+      counts[p.metode].total += p.jumlah;
+    }
+  }
+  const entries = Object.entries(counts).sort((a, b) => b[1].total - a[1].total);
+  if (entries.length === 0) {
+    return '<div style="color:#94a3b8; font-size:13px; padding:12px; text-align:center;">Belum ada transaksi</div>';
+  }
+  return entries.map(([metode, { count, total }]) => `
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e2e8f0;">
+      <span style="color:#64748b; text-transform:capitalize;">${metode}</span>
+      <span style="font-size:12px; color:#94a3b8; margin:0 12px;">${count}x</span>
+      <span style="font-weight:600; margin-left:auto;">${formatRupiah(total)}</span>
+    </div>
+  `).join('');
+}
+
+function formatPerMetodeCompact(perMetode) {
+  return Object.entries(perMetode)
+    .map(([metode, d]) => `${metode} ${formatRupiah(d.total)}`)
+    .join(' · ');
 }
 
 function formatRupiah(n) {

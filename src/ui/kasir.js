@@ -76,9 +76,11 @@ function renderGuardShift() {
     <div style="max-width:480px; margin:3rem auto; text-align:center; padding:2rem; background:var(--danger-soft); border:1px solid #fca5a5; border-radius:var(--radius);">
       <h2 class="text-red">⚠ Tidak Ada Shift Terbuka</h2>
       <p class="mt-1 text-gray">Buka shift dulu di tab <strong>Shift</strong> sebelum jualan.</p>
-      <button class="primary mt-2" data-action="goto-shift">Ke Tab Shift</button>
+      <button class="primary mt-2" id="btn-goto-shift">Ke Tab Shift</button>
     </div>
   `;
+  container.querySelector('#btn-goto-shift').onclick = () =>
+    document.querySelector('[data-tab="shift"]').click();
 }
 
 async function renderKasir() {
@@ -236,7 +238,6 @@ function bindKasirEvents() {
     const action = btn.dataset.action;
     const index = btn.dataset.index !== undefined ? parseInt(btn.dataset.index) : null;
 
-    if (action === 'goto-shift') document.querySelector('[data-tab="shift"]').click();
     if (action === 'riwayat') window.showRiwayatPenjualan();
     if (action === 'bayar-tunai') bayarTunai();
     if (action === 'bayar-qris') bayarQRIS();
