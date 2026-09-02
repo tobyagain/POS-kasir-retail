@@ -1,6 +1,6 @@
 // shiftService — buka/tutup shift, hitung kas sistem (INV-4)
 import { getByKey, getByIndex, put, generateId } from '../data/db.js';
-import { hitungKasSistem, hitungSelisih } from '../core/shift.js';
+import { hitungKasSistem, hitungSelisih, ringkasanPerMetode } from '../core/shift.js';
 
 // Buka shift baru
 export async function bukaShift({ kasir, modalAwal }) {
@@ -66,15 +66,15 @@ export async function tutupShift(shiftId, kasFisik) {
   const kasSistem = hitungKasSistem(shift, salesAll, cashflow);
   const selisih = hitungSelisih(kasFisik, kasSistem);
 
-  // Ringkasan per metode bayar
+  // Ringkasan per metode bayar memakai omzet netto, bukan uang lebih.
   const metodeCounts = {};
-  sales.forEach(s => {
-    (s.pembayaran || []).forEach(p => {
-      if (!metodeCounts[p.metode]) metodeCounts[p.metode] = { count: 0, total: 0 };
-      metodeCounts[p.metode].count++;
-      metodeCounts[p.metode].total += p.jumlah;
-    });
-  });
+  const perMetode = ringkasanPerMetode(sales);
+  for (const [metode, total] of Object.entries(perMetode)) {
+    metodeCounts[metode] = {
+      count: sales.filter(s => !s.void && (s.pembayaran || []).some(p => p.metode === metode)).length,
+      total
+    };
+  }
 
   shift.status = 'closed';
   shift.tutup = Date.now();

@@ -3,6 +3,7 @@ import { bukaShift, tutupShift, getShiftTerbuka, listShifts } from '../services/
 import { listPenjualan } from '../services/saleService.js';
 import { listCashflow } from '../services/cashflowService.js';
 import { bindNumericInput, readNumericInput } from './numeric-input.js';
+import { alokasiPembayaranNetto } from '../core/reports.js';
 
 export async function initShiftUI() {
   const shiftAktif = await getShiftTerbuka();
@@ -271,7 +272,7 @@ async function renderShiftAktif(shift) {
 function renderPerMetode(sales) {
   const counts = {};
   for (const s of sales) {
-    for (const p of (s.pembayaran || [])) {
+    for (const p of alokasiPembayaranNetto(s)) {
       if (!counts[p.metode]) counts[p.metode] = { count: 0, total: 0 };
       counts[p.metode].count++;
       counts[p.metode].total += p.jumlah;

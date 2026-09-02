@@ -1,6 +1,21 @@
 // core/reports.js — agregasi laporan. FUNGSI MURNI. Baca hppSnapshot/hargaSnapshot
 // dari transaksi (INV-1/2), TIDAK dari master produk. Exclude void.
 
+export function alokasiPembayaranNetto(sale) {
+  const payments = Array.isArray(sale.pembayaran) ? sale.pembayaran : [];
+  const totalDibayar = payments.reduce((sum, p) => sum + Number(p.jumlah || 0), 0);
+  const totalNetto = Number(sale.totalNetto ?? totalDibayar);
+  if (totalDibayar <= 0 || totalNetto < 0) return [];
+  let allocated = 0;
+  return payments.map((p, index) => {
+    const jumlah = index === payments.length - 1
+      ? totalNetto - allocated
+      : Math.floor(totalNetto * p.jumlah / totalDibayar);
+    allocated += jumlah;
+    return { ...p, jumlah };
+  });
+}
+
 /** Omzet per metode bayar dari daftar sale (exclude void).
  * Pembayaran dialokasi ke omzet netto agar kembalian/kelebihan tidak membesarkan omzet.
  */
@@ -8,18 +23,8 @@ export function omzetPerMetode(sales) {
   const out = {};
   for (const s of sales) {
     if (s.void) continue;
-    const payments = s.pembayaran || [];
-    const totalDibayar = payments.reduce((sum, p) => sum + p.jumlah, 0);
-    const totalNetto = Number(s.totalNetto ?? totalDibayar);
-    if (totalDibayar <= 0 || totalNetto < 0) continue;
-    let allocated = 0;
-    payments.forEach((p, index) => {
-      const amount = index === payments.length - 1
-        ? totalNetto - allocated
-        : Math.floor(totalNetto * p.jumlah / totalDibayar);
-      allocated += amount;
-      out[p.metode] = (out[p.metode] || 0) + amount;
-    });
+    const payments = alokasiPembayaranNetto(s);
+    for (const p of payments) out[p.metode] = (out[p.metode] || 0) + p.jumlah;
   }
   return out;
 }

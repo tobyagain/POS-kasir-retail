@@ -1,5 +1,6 @@
 // core/shift.js — hitung kas sistem & selisih shift. FUNGSI MURNI.
 // Lihat CLAUDE.md INV-4. Hanya penjualan TUNAI yang menyentuh laci.
+import { alokasiPembayaranNetto } from './reports.js';
 
 /**
  * Total bagian TUNAI dari semua penjualan (mengabaikan yang void).
@@ -12,8 +13,8 @@ export function totalTunaiPenjualan(sales) {
   let total = 0;
   for (const s of sales) {
     if (s.void) {
-      // Void berbayar = refund. Hanya refund tunai mengubah isi laci.
-      total -= Number(s.refund?.tunai || 0);
+      // Refund pending belum mengubah laci; refund selesai mengurangi laci.
+      if (s.refund?.status === 'selesai') total -= Number(s.refund.tunai || 0);
       continue;
     }
     const tunaiDibayar = (s.pembayaran || []).filter(p => p.metode === 'tunai').reduce((sum, p) => sum + p.jumlah, 0);
@@ -69,7 +70,7 @@ export function ringkasanPerMetode(sales) {
   const out = {};
   for (const s of sales) {
     if (s.void) continue;
-    for (const p of s.pembayaran || []) {
+    for (const p of alokasiPembayaranNetto(s)) {
       out[p.metode] = (out[p.metode] || 0) + p.jumlah;
     }
   }

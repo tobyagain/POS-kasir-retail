@@ -34,6 +34,8 @@ async function renderKas(shift) {
   const cashflows = await listCashflow({ shiftId: shift.id });
   const masuk = cashflows.filter(c => c.jenis === 'masuk').reduce((sum, c) => sum + c.nominal, 0);
   const keluar = cashflows.filter(c => c.jenis === 'keluar').reduce((sum, c) => sum + c.nominal, 0);
+  const kasMasuk = cashflows.filter(c => c.jenis === 'masuk' && c.tunai !== false).reduce((sum, c) => sum + c.nominal, 0);
+  const kasKeluar = cashflows.filter(c => c.jenis === 'keluar' && c.tunai !== false).reduce((sum, c) => sum + c.nominal, 0);
 
   const container = document.querySelector('[data-panel="kas"]');
   container.innerHTML = `
@@ -46,11 +48,13 @@ async function renderKas(shift) {
       </div>
       <div class="card" style="background:#d1fae5; border:2px solid #10b981;">
         <div style="font-size:12px; color:#047857; margin-bottom:4px;">💰 KAS MASUK</div>
-        <div style="font-size:24px; font-weight:700; color:#047857;">${formatRupiah(masuk)}</div>
+        <div style="font-size:24px; font-weight:700; color:#047857;">${formatRupiah(kasMasuk)}</div>
+          <div style="font-size:11px; color:#047857;">Tunai di laci · aktivitas ${formatRupiah(masuk)}</div>
       </div>
       <div class="card" style="background:#fee2e2; border:2px solid #dc2626;">
         <div style="font-size:12px; color:#dc2626; margin-bottom:4px;">💸 KAS KELUAR</div>
-        <div style="font-size:24px; font-weight:700; color:#dc2626;">${formatRupiah(keluar)}</div>
+        <div style="font-size:24px; font-weight:700; color:#dc2626;">${formatRupiah(kasKeluar)}</div>
+          <div style="font-size:11px; color:#dc2626;">Tunai di laci · aktivitas ${formatRupiah(keluar)}</div>
       </div>
     </div>
 

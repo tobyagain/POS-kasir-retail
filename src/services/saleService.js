@@ -81,7 +81,7 @@ function processStock(stores, tx, items, sale, now, restore) {
   next();
 }
 
-export async function voidPenjualan(saleId, alasan) {
+export async function voidPenjualan(saleId, alasan, refundStatus = 'pending') {
   const sale = await getPenjualan(saleId);
   if (!sale) throw new Error('Penjualan tidak ditemukan');
   if (sale.void) throw new Error('Sudah void');
@@ -99,7 +99,10 @@ export async function voidPenjualan(saleId, alasan) {
       current.refund = {
         pembayaran: (current.pembayaran || []).map(p => ({ ...p })),
         tunai: Math.max(0, tunaiDibayar - (current.kembalian || 0)),
-        total: current.totalNetto
+        total: current.totalNetto,
+        status: refundStatus,
+        dilakukanPada: refundStatus === 'selesai' ? now : null,
+        catatan: ''
       };
       stores.sales.put(current);
       processStock(stores, tx, current.items || [], current, now, true);

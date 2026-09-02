@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { labaKotor, labaBersih, produkTerlaris, stokMenipis, omzetPerMetode } from '../src/core/reports.js';
+import { labaKotor, labaBersih, produkTerlaris, stokMenipis, omzetPerMetode, alokasiPembayaranNetto } from '../src/core/reports.js';
 
 const sales = [
   { void:false, diskonNota:0, items:[
@@ -15,6 +15,14 @@ test('omzet per metode tidak menghitung kembalian sebagai omzet', () => {
   assert.deepEqual(omzetPerMetode([
     { void: false, totalNetto: 7000, pembayaran: [{ metode: 'tunai', jumlah: 10000 }] }
   ]), { tunai: 7000 });
+});
+
+test('alokasi pembayaran netto menjaga total dan proporsi metode', () => {
+  assert.deepEqual(alokasiPembayaranNetto({ totalNetto: 10000, pembayaran: [
+    { metode: 'tunai', jumlah: 7000 }, { metode: 'qris', jumlah: 5000 }
+  ]}), [
+    { metode: 'tunai', jumlah: 5833 }, { metode: 'qris', jumlah: 4167 }
+  ]);
 });
 test('laba kotor pakai snapshot & exclude void', () => {
   assert.equal(labaKotor(sales), 1400);

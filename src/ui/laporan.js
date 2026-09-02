@@ -105,6 +105,16 @@ async function loadLaporanOmzet(dari, sampai) {
         </div>
       </div>
 
+      <div style="margin-top:1rem; padding:1rem; background:#f8fafc; border-radius:8px;">
+        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">OMZET PER METODE BAYAR</div>
+        ${Object.entries(laporan.perMetode).map(([metode, total]) => `
+          <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #e2e8f0;">
+            <span style="text-transform:capitalize;">${metode}</span>
+            <strong>${formatRupiah(total)}</strong>
+          </div>
+        `).join('') || '<div style="color:#94a3b8;">Belum ada penjualan</div>'}
+      </div>
+
       ${laporan.totalTransaksi === 0 ? `
         <div style="text-align:center; padding:2rem; color:#94a3b8; margin-top:1rem;">
           <div style="font-size:32px; margin-bottom:0.5rem;">📭</div>

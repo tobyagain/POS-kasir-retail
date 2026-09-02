@@ -79,7 +79,14 @@ window.voidTransaksi = async (saleId, noStruk) => {
   if (!konfirm) return;
 
   try {
-    await voidPenjualan(saleId, alasan);
+    // Refund harus sudah dilakukan sebelum void dikonfirmasi.
+    const refundSelesai = confirm(
+      `Pembayaran ${formatRupiah(sale.totalNetto)} sudah dikembalikan ke pelanggan?\n\n` +
+      `Tunai dikembalikan dari laci; refund digital diproses di kanal pembayarannya.`
+    );
+    if (!refundSelesai) return;
+
+    await voidPenjualan(saleId, alasan, 'selesai');
     alert(`Transaksi ${noStruk} dibatalkan`);
     showRiwayatPenjualan();
   } catch (err) {

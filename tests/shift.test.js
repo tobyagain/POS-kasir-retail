@@ -48,7 +48,7 @@ test('kas manual: hanya yang tunai memengaruhi laci', () => {
 test('kas sistem menghitung refund tunai dari void', () => {
   const shift = { modalAwal: 200000 };
   const sales = [
-    { void: true, refund: { tunai: 10000 }, pembayaran: [{ metode: 'tunai', jumlah: 10000 }], kembalian: 0 },
+    { void: true, refund: { status: 'selesai', tunai: 10000 }, pembayaran: [{ metode: 'tunai', jumlah: 10000 }], kembalian: 0 },
     { void: false, pembayaran: [{ metode: 'tunai', jumlah: 5000 }], kembalian: 0 },
   ];
   assert.equal(hitungKasSistem(shift, sales, []), 195000);
