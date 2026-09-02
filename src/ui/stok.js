@@ -87,7 +87,7 @@ window.showOpnameStok = async () => {
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
-      <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
+      <button class="secondary" data-action-global="back-stok">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Opname Stok</h2>
     </div>
 
@@ -127,7 +127,7 @@ window.showOpnameStok = async () => {
                 ${lastOpname[p.id] ? formatTanggal(lastOpname[p.id]) : '<span style="color:#94a3b8;">Belum pernah</span>'}
               </td>
               <td>
-                <button class="primary" style="padding:6px 12px; font-size:12px;" onclick="window.simpanOpname('${p.id}', ${p.stok})">Simpan</button>
+                <button class="primary" style="padding:6px 12px; font-size:12px;" data-action-global="simpan-opname" data-value="${p.id}" data-value2="${p.stok}">Simpan</button>
               </td>
             </tr>
           `).join('')}
@@ -190,7 +190,7 @@ window.lihatMutasi = async (produkId, namaProduk) => {
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
-      <button class="secondary" onclick="window.initStokUI()">← Kembali</button>
+      <button class="secondary" data-action-global="back-stok">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Riwayat Mutasi: ${namaProduk}</h2>
     </div>
 

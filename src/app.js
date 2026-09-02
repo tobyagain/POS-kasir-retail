@@ -19,7 +19,13 @@ function initDynamicActions() {
     const action = el.dataset.actionGlobal;
     const value = el.dataset.value;
     const value2 = el.dataset.value2;
+    if (action === 'back-kasir') window.initKasirUI();
     if (action === 'show-opname') window.showOpnameStok();
+    if (action === 'show-form-barang-masuk') window.showFormBarangMasuk();
+    if (action === 'tambah-item-bm') window.tambahItem();
+    if (action === 'simpan-barang-masuk') window.simpanBarangMasuk();
+    if (action === 'back-barang-masuk') window.initBarangMasukUI();
+    if (action === 'back-stok') window.initStokUI();
     if (action === 'edit-produk') window.editProduk(value);
     if (action === 'hapus-produk') window.hapusProduk(value);
     if (action === 'lihat-mutasi') window.lihatMutasi(value, decodeURIComponent(value2));

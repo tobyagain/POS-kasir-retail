@@ -20,7 +20,7 @@ async function renderList() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📦 Riwayat Barang Masuk (${purchaseList.length})</h2>
-      <button class="primary" onclick="window.showFormBarangMasuk()">+ Input Barang Masuk</button>
+      <button class="primary" data-action-global="show-form-barang-masuk">+ Input Barang Masuk</button>
     </div>
 
     <div style="flex:1; overflow-y:auto;">
@@ -67,7 +67,7 @@ window.showFormBarangMasuk = async () => {
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
-      <button class="secondary" onclick="window.initBarangMasukUI()">← Kembali</button>
+      <button class="secondary" data-action-global="back-barang-masuk">← Kembali</button>
       <h2 style="color:#0284c7; margin:0;">Input Barang Masuk</h2>
     </div>
 
@@ -104,7 +104,7 @@ window.showFormBarangMasuk = async () => {
             <input type="text" id="input-harga" placeholder="0">
           </div>
         </div>
-        <button class="primary" onclick="window.tambahItem()" style="width:100%;">+ Tambah ke List</button>
+        <button class="primary" data-action-global="tambah-item-bm" style="width:100%;">+ Tambah ke List</button>
       </div>
 
       <!-- Kanan: Cart Items + Total -->
@@ -119,7 +119,7 @@ window.showFormBarangMasuk = async () => {
             <span style="font-weight:600; color:#047857;">TOTAL</span>
             <span id="label-total" style="font-size:24px; font-weight:700; color:#047857;">Rp 0</span>
           </div>
-          <button onclick="window.simpanBarangMasuk()" class="primary" style="width:100%; padding:14px; font-size:16px;">Simpan Barang Masuk</button>
+          <button data-action-global="simpan-barang-masuk" class="primary" style="width:100%; padding:14px; font-size:16px;">Simpan Barang Masuk</button>
         </div>
       </div>
     </div>
@@ -262,7 +262,7 @@ function renderCart() {
           </div>
           <div style="font-weight:700; color:#10b981;">${formatRupiah(it.subtotal)}</div>
         </div>
-        <button onclick="window.hapusItemBarangMasuk(${i})" style="padding:4px 10px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Hapus</button>
+        <button data-action-global="hapus-item-bm" data-value="${i}" style="padding:4px 10px; background:#fee2e2; color:#dc2626; border:none; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Hapus</button>
       </div>
     `).join('');
   }

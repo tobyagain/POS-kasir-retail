@@ -17,7 +17,7 @@ export async function showRiwayatPenjualan() {
   container.innerHTML = `
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
       <div class="flex gap-2 mb-2" style="align-items:center;">
-        <button class="secondary" onclick="window.initKasirUI()">← Kembali ke Kasir</button>
+        <button class="secondary" data-action-global="back-kasir">← Kembali ke Kasir</button>
         <h2 style="margin:0;">Riwayat Penjualan (Shift Aktif)</h2>
       </div>
 
@@ -45,8 +45,8 @@ export async function showRiwayatPenjualan() {
                 <td>${s.pembayaran.map(p => p.metode).join(', ')}</td>
                 <td>${s.void ? '<span class="text-red">VOID</span>' : '<span class="text-green">OK</span>'}</td>
                 <td>
-                  <button class="secondary" onclick="window.reprintStruk('${s.id}')">Cetak</button>
-                  ${!s.void ? `<button class="secondary" onclick="window.voidTransaksi('${s.id}', '${s.noStruk}')">Void</button>` : ''}
+                  <button class="secondary" data-action-global="reprint" data-value="${s.id}">Cetak</button>
+                  ${!s.void ? `<button class="secondary" data-action-global="void-transaksi" data-value="${s.id}" data-value2="${s.noStruk}">Void</button>` : ''}
                 </td>
               </tr>
             `).join('')}
@@ -72,6 +72,8 @@ window.reprintStruk = async (saleId) => {
 };
 
 window.voidTransaksi = async (saleId, noStruk) => {
+  const sale = await (await import('../services/saleService.js')).getPenjualan(saleId);
+  if (!sale || sale.void) return;
   const alasan = prompt(`Void transaksi ${noStruk}?\n\nAlasan:`, 'Salah input');
   if (!alasan) return;
 

@@ -82,6 +82,9 @@ function processStock(stores, tx, items, sale, now, restore) {
 }
 
 export async function voidPenjualan(saleId, alasan, refundStatus = 'pending') {
+  if (!['pending', 'selesai'].includes(refundStatus)) {
+    throw new Error('Status refund tidak valid');
+  }
   const sale = await getPenjualan(saleId);
   if (!sale) throw new Error('Penjualan tidak ditemukan');
   if (sale.void) throw new Error('Sudah void');
