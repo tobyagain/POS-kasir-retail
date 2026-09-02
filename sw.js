@@ -1,5 +1,5 @@
 // Service Worker — cache offline
-const CACHE_NAME = 'pos-retail-v20260901-2';
+const CACHE_NAME = 'pos-retail-v20260902-1';
 
 // Detect base path (GitHub Pages = /repo-name/, localhost = /)
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '/');
