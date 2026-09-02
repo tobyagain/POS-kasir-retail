@@ -16,7 +16,7 @@ async function renderMain() {
     <div style="height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <h2 style="color:#0284c7; margin:0;">📊 Kelola Stok</h2>
-      <button class="primary" onclick="window.showOpnameStok()">Opname Stok</button>
+      <button class="primary" data-action-global="show-opname">Opname Stok</button>
     </div>
 
     ${menipis.length > 0 ? `
@@ -60,7 +60,7 @@ async function renderMain() {
               </td>
               <td class="text-right" style="color:#64748b;">${formatRupiah(p.hpp)}</td>
               <td>
-                <button class="secondary" style="padding:6px 12px; font-size:12px;" onclick="window.lihatMutasi('${p.id}', '${p.nama}')">Riwayat</button>
+                <button class="secondary" style="padding:6px 12px; font-size:12px;" data-action-global="lihat-mutasi" data-value="${p.id}" data-value2="${encodeURIComponent(p.nama)}">Riwayat</button>
               </td>
             </tr>
           `).join('')}

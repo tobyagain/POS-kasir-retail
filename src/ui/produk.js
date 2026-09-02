@@ -63,8 +63,8 @@ async function renderList() {
                 </span>
               </td>
               <td>
-                <button class="secondary" style="padding:6px 12px; font-size:12px;" onclick="event.stopPropagation(); window.editProduk('${p.id}')">Edit</button>
-                <button class="secondary" style="padding:6px 12px; font-size:12px; background:#fee2e2; color:#dc2626; border-color:#dc2626;" onclick="event.stopPropagation(); window.hapusProduk('${p.id}')">Hapus</button>
+                <button class="secondary" style="padding:6px 12px; font-size:12px;" data-action-global="edit-produk" data-value="${p.id}">Edit</button>
+                                <button class="secondary" style="padding:6px 12px; font-size:12px; background:#fee2e2; color:#dc2626; border-color:#dc2626;" data-action-global="hapus-produk" data-value="${p.id}">Hapus</button>
               </td>
             </tr>
           `).join('')}

@@ -11,6 +11,25 @@ import { initLaporanUI } from './ui/laporan.js';
 import { initPengaturanUI } from './ui/pengaturan.js';
 import { initKeyboardShortcuts, bindTabNavigation, registerShortcut, focusElement } from './ui/keyboardShortcuts.js';
 
+// Event delegation untuk tombol dinamis. Hindari inline onclick + interpolasi data user.
+function initDynamicActions() {
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action-global]');
+    if (!el) return;
+    const action = el.dataset.actionGlobal;
+    const value = el.dataset.value;
+    const value2 = el.dataset.value2;
+    if (action === 'show-opname') window.showOpnameStok();
+    if (action === 'edit-produk') window.editProduk(value);
+    if (action === 'hapus-produk') window.hapusProduk(value);
+    if (action === 'lihat-mutasi') window.lihatMutasi(value, decodeURIComponent(value2));
+    if (action === 'simpan-opname') window.simpanOpname(value, Number(value2));
+    if (action === 'reprint') window.reprintStruk(value);
+    if (action === 'void-transaksi') window.voidTransaksi(value, value2);
+    if (action === 'hapus-item-bm') window.hapusItemBarangMasuk(Number(value));
+  });
+}
+
 // Tab routing
 function initTabs() {
   const tabs = document.querySelectorAll('.tab-btn');
@@ -53,6 +72,7 @@ function initTabs() {
     console.log('✓ IndexedDB siap');
 
     initTabs();
+    initDynamicActions();
     initKeyboardShortcuts();
     bindTabNavigation();
     // Ctrl+K hanya bermakna di kasir (fokus search produk)
