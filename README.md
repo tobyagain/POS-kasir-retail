@@ -1,113 +1,37 @@
-# POS Retail UMKM
+# POS Kasir Retail — UMKM
 
-Point of sale untuk toko retail UMKM. Offline-first, satu device kasir, tanpa backend.
-Data disimpan lokal di IndexedDB.
+POS (point of sale) retail untuk toko UMKM. Offline-first, satu device,
+tanpa backend — semua data tersimpan di perangkat (IndexedDB). Vanilla JS
+modular, tanpa framework, tanpa build step.
 
-Proyek ini **bukan** POS percetakan (itu repo terpisah: POS-offset / PrintCalc).
-Ini untuk retail umum: warung, toko kelontong, minimarket UMKM.
+## Pakai
 
----
+Buka via GitHub Pages (Settings → Pages → branch main), atau lokal:
 
-## Stack
+```bash
+bash start-server.sh   # python -m http.server 8000
+# buka http://localhost:8000
+```
 
-- **Vanilla JS** (ES modules), tanpa framework
-- **IndexedDB** untuk data transaksi, stok, shift
-- **Tanpa dependency runtime** (no CDN, no npm bundle di v1)
-- **Modular** per domain (bukan single-file)
-
----
+Setelah update kode: **Ctrl+Shift+R** (hard refresh) sekali — service worker
+`sw.js` cache-first untuk HTML/CSS, network-first untuk JS.
 
 ## Fitur
 
-### ✅ Core (Tahap 1-5 — DONE)
-- **Produk & stok** — master produk, barcode, kategori
-- **Barang masuk** — update stok + HPP rata-rata bergerak
-- **Kasir** — scan barcode, keranjang, bayar campur (tunai/QRIS/transfer/kartu), cetak struk
-- **Shift** — buka/tutup shift, modal awal, kas sistem vs fisik, selisih
-- **Kas** — pencatatan kas masuk/keluar non-penjualan
-- **Laporan** — omzet, laba kotor/bersih, produk terlaris, stok menipis, riwayat shift
-- **Pengaturan** — identitas toko, printer (toggle & lebar 58/80mm), laci kas, backup/restore DB
+- Kasir: scan barcode, keranjang, bayar campur (tunai + QRIS/dll), struk 58/80mm
+- Keyboard flow penuh di layar kasir (Alt+1..8 nav, F6/F7/F8, Ctrl+Enter bayar)
+- Produk + import CSV; Barang masuk dengan HPP rata-rata bergerak
+- Stok + opname (selalu lewat mutasi `stockMoves`)
+- Shift kasir: modal awal, kas sistem vs fisik, selisih
+- Kas masuk/keluar terkategori
+- Laporan omzet/profit/laba bersih (dari snapshot transaksi, bukan master)
+- PWA installable; cetak via browser (Windows) atau ESC/POS Bluetooth (Android)
 
-### ✅ Android + Bluetooth (Tahap 6 — DONE secara kode)
-- **ESC/POS renderer** — cetak struk via printer thermal Bluetooth
-- **Laci kas** — buka otomatis via perintah ESC/POS
-- **Web Bluetooth** — pairing & kirim byte langsung ke printer
-- **Status:** Kode complete, belum ditest di hardware printer nyata. Lihat **[docs/ANDROID.md](docs/ANDROID.md)** untuk panduan setup.
-
----
-
-## Cara Pakai
-
-### Offline (Recommended)
-
-**PWA (Progressive Web App):**
-1. Jalankan local server sekali: `python -m http.server 8000`
-2. Buka `http://localhost:8000` di Chrome/Edge
-3. Klik ⊕ icon di address bar → **Install**
-4. Tutup server. App sudah ter-cache offline.
-5. Buka dari Start Menu / Desktop seperti native app.
-
-**Atau langsung buka HTML:**
-- Double-click `index.html` atau drag ke Chrome.
-- RAM ~100-150 MB (ringan, bukan Electron).
-
-Lihat **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** untuk detail offline deployment & auto-launch.
-
----
-
-### Windows / Desktop
-1. Clone repo ini.
-2. Buka `index.html` di browser (Chrome/Edge recommended).
-3. Tidak perlu build step. Langsung jalan.
-4. Cetak struk via `window.print()` (driver browser).
-
-### Android / Tablet
-1. Host aplikasi di server HTTPS (atau localhost via tunnel).
-2. Buka di Chrome/Edge Android.
-3. Tab **Pengaturan** → **Pair Printer Bluetooth** → pilih printer thermal.
-4. Set **Metode Cetak** = `Bluetooth ESC/POS`.
-5. Lihat **[docs/ANDROID.md](docs/ANDROID.md)** untuk troubleshooting.
-
-**⚠️ Backup berkala via tab Pengaturan.** Data lokal di IndexedDB browser.
-
----
-
-## Dokumentasi
-
-- **[CLAUDE.md](CLAUDE.md)** — panduan untuk agen AI yang membangun/memelihara proyek ini
-- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — cara install offline (PWA, HTML langsung, Electron, APK)
-- **[docs/DATA-MODEL.md](docs/DATA-MODEL.md)** — struktur IndexedDB
-- **[docs/ROADMAP.md](docs/ROADMAP.md)** — tahapan pengembangan
-- **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — log keputusan desain
-- **[docs/ANDROID.md](docs/ANDROID.md)** — panduan printer thermal Bluetooth (Tahap 6)
-
----
-
-## Test
+## Development
 
 ```bash
-npm test
+npm test        # 51 test, node:test (core murni tanpa mock)
 ```
 
-16 test untuk logika core (HPP, shift, laporan). Semua harus hijau sebelum commit.
-
----
-
-## Invarian Kritis
-
-Aturan bisnis yang **tidak boleh dilanggar** (lihat `CLAUDE.md` untuk detail):
-
-1. **HPP snapshot ke item penjualan** — laporan profit pakai snapshot, bukan HPP master yang berubah-ubah.
-2. **Harga jual juga snapshot** — ubah harga produk besok tidak mengubah struk kemarin.
-3. **HPP rata-rata bergerak** — rumus khusus, termasuk kasus stok ≤ 0.
-4. **Kas shift = tunai only** — QRIS/transfer masuk omzet tapi bukan laci.
-5. **Setiap penjualan terikat shift** — tidak boleh jual tanpa shift terbuka.
-6. **Stok via mutasi** — semua perubahan stok tercatat di `stockMoves`, tidak pernah diubah diam-diam.
-7. **Void = kembalikan efek, jangan hapus** — record tetap ada untuk audit.
-8. **Nomor dokumen counter atomik** — tidak ada nomor kembar/bolong.
-
----
-
-## Lisensi
-
-MIT (atau sesuaikan)
+Instruksi lengkap untuk agen: `CLAUDE.md`.
+Keputusan produk: `docs/KEPUTUSAN.md`. Catatan dev & gotcha: `docs/DEV-NOTES.md`.

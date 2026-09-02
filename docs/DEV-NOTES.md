@@ -33,7 +33,8 @@ NODE_PATH="C:\Users\tobyg\node_modules" node tools-shot-ui.cjs
 # output: test/shot-kasir-{empty,cart,payment}.png + DOM probe JSON
 ```
 
-`tools-shot-ui.cjs` BUKAN unit test — jangan taruh di `test/` (node --test akan mengeksekusinya dan gagal).
+`tools-shot-ui.cjs` BUKAN unit test (tidak ikut di-git, lihat .gitignore) — jangan
+taruh di `test/` (node --test akan mengeksekusinya dan gagal).
 
 ## Arsitektur keyboard shortcut
 
